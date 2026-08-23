@@ -84,7 +84,7 @@ function pad(n: number) {
 }
 
 export const members: Member[] = Array.from({ length: 28 }).map((_, i) => {
-  const plan = plans[i % plans.length];
+  const plan = plans[i % plans.length]!;
   const startMonth = (i % 10) + 1;
   const start = `2026-${pad(startMonth)}-${pad((i % 27) + 1)}`;
   const expMonth = ((startMonth + plan.months - 1) % 12) + 1;
@@ -93,15 +93,15 @@ export const members: Member[] = Array.from({ length: 28 }).map((_, i) => {
   const paymentStatus = i % 7 === 0 ? "Pending" : i % 4 === 0 ? "Partial" : "Paid";
   return {
     id: `M-${1000 + i}`,
-    name: `${firstNames[i % firstNames.length]} ${lastNames[i % lastNames.length]}`,
-    email: `${firstNames[i % firstNames.length].toLowerCase()}${i}@smartgym.in`,
+    name: `${firstNames[i % firstNames.length]!} ${lastNames[i % lastNames.length]!}`,
+    email: `${firstNames[i % firstNames.length]!.toLowerCase()}${i}@smartgym.in`,
     phone: `+91 9${String(800000000 + i * 137711).slice(0, 9)}`,
     gender: i % 3 === 1 ? "Female" : "Male",
     dob: `199${i % 10}-0${(i % 9) + 1}-1${i % 9}`,
     address: `${12 + i} Fitness Street, Sector ${i % 20}, Pune`,
     height: 158 + (i % 25),
     weight: 52 + (i % 38),
-    goal: goals[i % goals.length],
+    goal: goals[i % goals.length]!,
     experience: i % 3 === 0 ? "Beginner" : i % 3 === 1 ? "Intermediate" : "Advanced",
     trainingDays: 3 + (i % 4),
     plan: plan.name,
@@ -120,7 +120,7 @@ export const payments: Payment[] = members.slice(0, 20).map((m, i) => ({
   date: `2026-08-${pad((i % 22) + 1)}`,
   amount: m.paymentStatus === "Partial" ? Math.round(m.fee / 2) : m.fee,
   remaining: m.paymentStatus === "Partial" ? Math.round(m.fee / 2) : m.paymentStatus === "Pending" ? m.fee : 0,
-  method: (["Cash", "UPI", "Card", "Bank Transfer"] as const)[i % 4],
+  method: (["Cash", "UPI", "Card", "Bank Transfer"] as const)[i % 4]!,
   status: m.paymentStatus,
   plan: m.plan,
 }));
