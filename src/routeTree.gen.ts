@@ -13,7 +13,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as MemberRouteImport } from './routes/member'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminAttendanceRouteImport } from './routes/admin.attendance'
+import { Route as AdminExercisesRouteImport } from './routes/admin.exercises'
 import { Route as AdminMembersRouteImport } from './routes/admin.members'
+import { Route as AdminMembershipsRouteImport } from './routes/admin.memberships'
+import { Route as AdminPaymentsRouteImport } from './routes/admin.payments'
 import { Route as AdminRegisterRouteImport } from './routes/admin.register'
 
 const IndexRoute = IndexRouteImport.update({
@@ -36,9 +40,29 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminAttendanceRoute = AdminAttendanceRouteImport.update({
+  id: '/attendance',
+  path: '/attendance',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminExercisesRoute = AdminExercisesRouteImport.update({
+  id: '/exercises',
+  path: '/exercises',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminMembersRoute = AdminMembersRouteImport.update({
   id: '/members',
   path: '/members',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminMembershipsRoute = AdminMembershipsRouteImport.update({
+  id: '/memberships',
+  path: '/memberships',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminPaymentsRoute = AdminPaymentsRouteImport.update({
+  id: '/payments',
+  path: '/payments',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminRegisterRoute = AdminRegisterRouteImport.update({
@@ -51,14 +75,22 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/member': typeof MemberRoute
+  '/admin/attendance': typeof AdminAttendanceRoute
+  '/admin/exercises': typeof AdminExercisesRoute
   '/admin/members': typeof AdminMembersRoute
+  '/admin/memberships': typeof AdminMembershipsRoute
+  '/admin/payments': typeof AdminPaymentsRoute
   '/admin/register': typeof AdminRegisterRoute
   '/admin/': typeof AdminIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/member': typeof MemberRoute
+  '/admin/attendance': typeof AdminAttendanceRoute
+  '/admin/exercises': typeof AdminExercisesRoute
   '/admin/members': typeof AdminMembersRoute
+  '/admin/memberships': typeof AdminMembershipsRoute
+  '/admin/payments': typeof AdminPaymentsRoute
   '/admin/register': typeof AdminRegisterRoute
   '/admin': typeof AdminIndexRoute
 }
@@ -67,7 +99,11 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/member': typeof MemberRoute
+  '/admin/attendance': typeof AdminAttendanceRoute
+  '/admin/exercises': typeof AdminExercisesRoute
   '/admin/members': typeof AdminMembersRoute
+  '/admin/memberships': typeof AdminMembershipsRoute
+  '/admin/payments': typeof AdminPaymentsRoute
   '/admin/register': typeof AdminRegisterRoute
   '/admin/': typeof AdminIndexRoute
 }
@@ -77,17 +113,34 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/member'
+    | '/admin/attendance'
+    | '/admin/exercises'
     | '/admin/members'
+    | '/admin/memberships'
+    | '/admin/payments'
     | '/admin/register'
     | '/admin/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/member' | '/admin/members' | '/admin/register' | '/admin'
+  to:
+    | '/'
+    | '/member'
+    | '/admin/attendance'
+    | '/admin/exercises'
+    | '/admin/members'
+    | '/admin/memberships'
+    | '/admin/payments'
+    | '/admin/register'
+    | '/admin'
   id:
     | '__root__'
     | '/'
     | '/admin'
     | '/member'
+    | '/admin/attendance'
+    | '/admin/exercises'
     | '/admin/members'
+    | '/admin/memberships'
+    | '/admin/payments'
     | '/admin/register'
     | '/admin/'
   fileRoutesById: FileRoutesById
@@ -128,11 +181,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/attendance': {
+      id: '/admin/attendance'
+      path: '/attendance'
+      fullPath: '/admin/attendance'
+      preLoaderRoute: typeof AdminAttendanceRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/exercises': {
+      id: '/admin/exercises'
+      path: '/exercises'
+      fullPath: '/admin/exercises'
+      preLoaderRoute: typeof AdminExercisesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/members': {
       id: '/admin/members'
       path: '/members'
       fullPath: '/admin/members'
       preLoaderRoute: typeof AdminMembersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/memberships': {
+      id: '/admin/memberships'
+      path: '/memberships'
+      fullPath: '/admin/memberships'
+      preLoaderRoute: typeof AdminMembershipsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/payments': {
+      id: '/admin/payments'
+      path: '/payments'
+      fullPath: '/admin/payments'
+      preLoaderRoute: typeof AdminPaymentsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/register': {
@@ -146,13 +227,21 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdminRouteChildren {
+  AdminAttendanceRoute: typeof AdminAttendanceRoute
+  AdminExercisesRoute: typeof AdminExercisesRoute
   AdminMembersRoute: typeof AdminMembersRoute
+  AdminMembershipsRoute: typeof AdminMembershipsRoute
+  AdminPaymentsRoute: typeof AdminPaymentsRoute
   AdminRegisterRoute: typeof AdminRegisterRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminAttendanceRoute: AdminAttendanceRoute,
+  AdminExercisesRoute: AdminExercisesRoute,
   AdminMembersRoute: AdminMembersRoute,
+  AdminMembershipsRoute: AdminMembershipsRoute,
+  AdminPaymentsRoute: AdminPaymentsRoute,
   AdminRegisterRoute: AdminRegisterRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
