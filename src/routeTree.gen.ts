@@ -22,6 +22,11 @@ import { Route as AdminNotificationsRouteImport } from './routes/admin.notificat
 import { Route as AdminPaymentsRouteImport } from './routes/admin.payments'
 import { Route as AdminRegisterRouteImport } from './routes/admin.register'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
+import { Route as MemberIndexRouteImport } from './routes/member.index'
+import { Route as MemberCalculatorRouteImport } from './routes/member.calculator'
+import { Route as MemberExercisesRouteImport } from './routes/member.exercises'
+import { Route as MemberNutritionRouteImport } from './routes/member.nutrition'
+import { Route as MemberWorkoutRouteImport } from './routes/member.workout'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -88,11 +93,36 @@ const AdminSettingsRoute = AdminSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AdminRoute,
 } as any)
+const MemberIndexRoute = MemberIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => MemberRoute,
+} as any)
+const MemberCalculatorRoute = MemberCalculatorRouteImport.update({
+  id: '/calculator',
+  path: '/calculator',
+  getParentRoute: () => MemberRoute,
+} as any)
+const MemberExercisesRoute = MemberExercisesRouteImport.update({
+  id: '/exercises',
+  path: '/exercises',
+  getParentRoute: () => MemberRoute,
+} as any)
+const MemberNutritionRoute = MemberNutritionRouteImport.update({
+  id: '/nutrition',
+  path: '/nutrition',
+  getParentRoute: () => MemberRoute,
+} as any)
+const MemberWorkoutRoute = MemberWorkoutRouteImport.update({
+  id: '/workout',
+  path: '/workout',
+  getParentRoute: () => MemberRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
-  '/member': typeof MemberRoute
+  '/member': typeof MemberRouteWithChildren
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/attendance': typeof AdminAttendanceRoute
   '/admin/exercises': typeof AdminExercisesRoute
@@ -102,11 +132,15 @@ export interface FileRoutesByFullPath {
   '/admin/payments': typeof AdminPaymentsRoute
   '/admin/register': typeof AdminRegisterRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/member/calculator': typeof MemberCalculatorRoute
+  '/member/exercises': typeof MemberExercisesRoute
+  '/member/nutrition': typeof MemberNutritionRoute
+  '/member/workout': typeof MemberWorkoutRoute
   '/admin/': typeof AdminIndexRoute
+  '/member/': typeof MemberIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/member': typeof MemberRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/attendance': typeof AdminAttendanceRoute
   '/admin/exercises': typeof AdminExercisesRoute
@@ -116,13 +150,18 @@ export interface FileRoutesByTo {
   '/admin/payments': typeof AdminPaymentsRoute
   '/admin/register': typeof AdminRegisterRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/member/calculator': typeof MemberCalculatorRoute
+  '/member/exercises': typeof MemberExercisesRoute
+  '/member/nutrition': typeof MemberNutritionRoute
+  '/member/workout': typeof MemberWorkoutRoute
   '/admin': typeof AdminIndexRoute
+  '/member': typeof MemberIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
-  '/member': typeof MemberRoute
+  '/member': typeof MemberRouteWithChildren
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/attendance': typeof AdminAttendanceRoute
   '/admin/exercises': typeof AdminExercisesRoute
@@ -132,7 +171,12 @@ export interface FileRoutesById {
   '/admin/payments': typeof AdminPaymentsRoute
   '/admin/register': typeof AdminRegisterRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/member/calculator': typeof MemberCalculatorRoute
+  '/member/exercises': typeof MemberExercisesRoute
+  '/member/nutrition': typeof MemberNutritionRoute
+  '/member/workout': typeof MemberWorkoutRoute
   '/admin/': typeof AdminIndexRoute
+  '/member/': typeof MemberIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -149,11 +193,15 @@ export interface FileRouteTypes {
     | '/admin/payments'
     | '/admin/register'
     | '/admin/settings'
+    | '/member/calculator'
+    | '/member/exercises'
+    | '/member/nutrition'
+    | '/member/workout'
     | '/admin/'
+    | '/member/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/member'
     | '/admin/analytics'
     | '/admin/attendance'
     | '/admin/exercises'
@@ -163,7 +211,12 @@ export interface FileRouteTypes {
     | '/admin/payments'
     | '/admin/register'
     | '/admin/settings'
+    | '/member/calculator'
+    | '/member/exercises'
+    | '/member/nutrition'
+    | '/member/workout'
     | '/admin'
+    | '/member'
   id:
     | '__root__'
     | '/'
@@ -178,13 +231,18 @@ export interface FileRouteTypes {
     | '/admin/payments'
     | '/admin/register'
     | '/admin/settings'
+    | '/member/calculator'
+    | '/member/exercises'
+    | '/member/nutrition'
+    | '/member/workout'
     | '/admin/'
+    | '/member/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
-  MemberRoute: typeof MemberRoute
+  MemberRoute: typeof MemberRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -280,6 +338,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSettingsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/member/': {
+      id: '/member/'
+      path: '/'
+      fullPath: '/member/'
+      preLoaderRoute: typeof MemberIndexRouteImport
+      parentRoute: typeof MemberRoute
+    }
+    '/member/calculator': {
+      id: '/member/calculator'
+      path: '/calculator'
+      fullPath: '/member/calculator'
+      preLoaderRoute: typeof MemberCalculatorRouteImport
+      parentRoute: typeof MemberRoute
+    }
+    '/member/exercises': {
+      id: '/member/exercises'
+      path: '/exercises'
+      fullPath: '/member/exercises'
+      preLoaderRoute: typeof MemberExercisesRouteImport
+      parentRoute: typeof MemberRoute
+    }
+    '/member/nutrition': {
+      id: '/member/nutrition'
+      path: '/nutrition'
+      fullPath: '/member/nutrition'
+      preLoaderRoute: typeof MemberNutritionRouteImport
+      parentRoute: typeof MemberRoute
+    }
+    '/member/workout': {
+      id: '/member/workout'
+      path: '/workout'
+      fullPath: '/member/workout'
+      preLoaderRoute: typeof MemberWorkoutRouteImport
+      parentRoute: typeof MemberRoute
+    }
   }
 }
 
@@ -311,10 +404,29 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface MemberRouteChildren {
+  MemberCalculatorRoute: typeof MemberCalculatorRoute
+  MemberExercisesRoute: typeof MemberExercisesRoute
+  MemberNutritionRoute: typeof MemberNutritionRoute
+  MemberWorkoutRoute: typeof MemberWorkoutRoute
+  MemberIndexRoute: typeof MemberIndexRoute
+}
+
+const MemberRouteChildren: MemberRouteChildren = {
+  MemberCalculatorRoute: MemberCalculatorRoute,
+  MemberExercisesRoute: MemberExercisesRoute,
+  MemberNutritionRoute: MemberNutritionRoute,
+  MemberWorkoutRoute: MemberWorkoutRoute,
+  MemberIndexRoute: MemberIndexRoute,
+}
+
+const MemberRouteWithChildren =
+  MemberRoute._addFileChildren(MemberRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
-  MemberRoute: MemberRoute,
+  MemberRoute: MemberRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
