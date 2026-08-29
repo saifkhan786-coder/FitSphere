@@ -13,12 +13,20 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as MemberRouteImport } from './routes/member'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
 import { Route as AdminAttendanceRouteImport } from './routes/admin.attendance'
 import { Route as AdminExercisesRouteImport } from './routes/admin.exercises'
 import { Route as AdminMembersRouteImport } from './routes/admin.members'
 import { Route as AdminMembershipsRouteImport } from './routes/admin.memberships'
+import { Route as AdminNotificationsRouteImport } from './routes/admin.notifications'
 import { Route as AdminPaymentsRouteImport } from './routes/admin.payments'
 import { Route as AdminRegisterRouteImport } from './routes/admin.register'
+import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
+import { Route as MemberIndexRouteImport } from './routes/member.index'
+import { Route as MemberCalculatorRouteImport } from './routes/member.calculator'
+import { Route as MemberExercisesRouteImport } from './routes/member.exercises'
+import { Route as MemberNutritionRouteImport } from './routes/member.nutrition'
+import { Route as MemberWorkoutRouteImport } from './routes/member.workout'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -38,6 +46,11 @@ const MemberRoute = MemberRouteImport.update({
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminAttendanceRoute = AdminAttendanceRouteImport.update({
@@ -60,6 +73,11 @@ const AdminMembershipsRoute = AdminMembershipsRouteImport.update({
   path: '/memberships',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminNotificationsRoute = AdminNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminPaymentsRoute = AdminPaymentsRouteImport.update({
   id: '/payments',
   path: '/payments',
@@ -70,42 +88,95 @@ const AdminRegisterRoute = AdminRegisterRouteImport.update({
   path: '/register',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminSettingsRoute = AdminSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AdminRoute,
+} as any)
+const MemberIndexRoute = MemberIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => MemberRoute,
+} as any)
+const MemberCalculatorRoute = MemberCalculatorRouteImport.update({
+  id: '/calculator',
+  path: '/calculator',
+  getParentRoute: () => MemberRoute,
+} as any)
+const MemberExercisesRoute = MemberExercisesRouteImport.update({
+  id: '/exercises',
+  path: '/exercises',
+  getParentRoute: () => MemberRoute,
+} as any)
+const MemberNutritionRoute = MemberNutritionRouteImport.update({
+  id: '/nutrition',
+  path: '/nutrition',
+  getParentRoute: () => MemberRoute,
+} as any)
+const MemberWorkoutRoute = MemberWorkoutRouteImport.update({
+  id: '/workout',
+  path: '/workout',
+  getParentRoute: () => MemberRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
-  '/member': typeof MemberRoute
+  '/member': typeof MemberRouteWithChildren
+  '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/attendance': typeof AdminAttendanceRoute
   '/admin/exercises': typeof AdminExercisesRoute
   '/admin/members': typeof AdminMembersRoute
   '/admin/memberships': typeof AdminMembershipsRoute
+  '/admin/notifications': typeof AdminNotificationsRoute
   '/admin/payments': typeof AdminPaymentsRoute
   '/admin/register': typeof AdminRegisterRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/member/calculator': typeof MemberCalculatorRoute
+  '/member/exercises': typeof MemberExercisesRoute
+  '/member/nutrition': typeof MemberNutritionRoute
+  '/member/workout': typeof MemberWorkoutRoute
   '/admin/': typeof AdminIndexRoute
+  '/member/': typeof MemberIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/member': typeof MemberRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/attendance': typeof AdminAttendanceRoute
   '/admin/exercises': typeof AdminExercisesRoute
   '/admin/members': typeof AdminMembersRoute
   '/admin/memberships': typeof AdminMembershipsRoute
+  '/admin/notifications': typeof AdminNotificationsRoute
   '/admin/payments': typeof AdminPaymentsRoute
   '/admin/register': typeof AdminRegisterRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/member/calculator': typeof MemberCalculatorRoute
+  '/member/exercises': typeof MemberExercisesRoute
+  '/member/nutrition': typeof MemberNutritionRoute
+  '/member/workout': typeof MemberWorkoutRoute
   '/admin': typeof AdminIndexRoute
+  '/member': typeof MemberIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
-  '/member': typeof MemberRoute
+  '/member': typeof MemberRouteWithChildren
+  '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/attendance': typeof AdminAttendanceRoute
   '/admin/exercises': typeof AdminExercisesRoute
   '/admin/members': typeof AdminMembersRoute
   '/admin/memberships': typeof AdminMembershipsRoute
+  '/admin/notifications': typeof AdminNotificationsRoute
   '/admin/payments': typeof AdminPaymentsRoute
   '/admin/register': typeof AdminRegisterRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/member/calculator': typeof MemberCalculatorRoute
+  '/member/exercises': typeof MemberExercisesRoute
+  '/member/nutrition': typeof MemberNutritionRoute
+  '/member/workout': typeof MemberWorkoutRoute
   '/admin/': typeof AdminIndexRoute
+  '/member/': typeof MemberIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -113,42 +184,65 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/member'
+    | '/admin/analytics'
     | '/admin/attendance'
     | '/admin/exercises'
     | '/admin/members'
     | '/admin/memberships'
+    | '/admin/notifications'
     | '/admin/payments'
     | '/admin/register'
+    | '/admin/settings'
+    | '/member/calculator'
+    | '/member/exercises'
+    | '/member/nutrition'
+    | '/member/workout'
     | '/admin/'
+    | '/member/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/member'
+    | '/admin/analytics'
     | '/admin/attendance'
     | '/admin/exercises'
     | '/admin/members'
     | '/admin/memberships'
+    | '/admin/notifications'
     | '/admin/payments'
     | '/admin/register'
+    | '/admin/settings'
+    | '/member/calculator'
+    | '/member/exercises'
+    | '/member/nutrition'
+    | '/member/workout'
     | '/admin'
+    | '/member'
   id:
     | '__root__'
     | '/'
     | '/admin'
     | '/member'
+    | '/admin/analytics'
     | '/admin/attendance'
     | '/admin/exercises'
     | '/admin/members'
     | '/admin/memberships'
+    | '/admin/notifications'
     | '/admin/payments'
     | '/admin/register'
+    | '/admin/settings'
+    | '/member/calculator'
+    | '/member/exercises'
+    | '/member/nutrition'
+    | '/member/workout'
     | '/admin/'
+    | '/member/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
-  MemberRoute: typeof MemberRoute
+  MemberRoute: typeof MemberRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -181,6 +275,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/analytics': {
+      id: '/admin/analytics'
+      path: '/analytics'
+      fullPath: '/admin/analytics'
+      preLoaderRoute: typeof AdminAnalyticsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/attendance': {
       id: '/admin/attendance'
       path: '/attendance'
@@ -209,6 +310,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminMembershipsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/notifications': {
+      id: '/admin/notifications'
+      path: '/notifications'
+      fullPath: '/admin/notifications'
+      preLoaderRoute: typeof AdminNotificationsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/payments': {
       id: '/admin/payments'
       path: '/payments'
@@ -223,35 +331,102 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRegisterRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/settings': {
+      id: '/admin/settings'
+      path: '/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AdminSettingsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/member/': {
+      id: '/member/'
+      path: '/'
+      fullPath: '/member/'
+      preLoaderRoute: typeof MemberIndexRouteImport
+      parentRoute: typeof MemberRoute
+    }
+    '/member/calculator': {
+      id: '/member/calculator'
+      path: '/calculator'
+      fullPath: '/member/calculator'
+      preLoaderRoute: typeof MemberCalculatorRouteImport
+      parentRoute: typeof MemberRoute
+    }
+    '/member/exercises': {
+      id: '/member/exercises'
+      path: '/exercises'
+      fullPath: '/member/exercises'
+      preLoaderRoute: typeof MemberExercisesRouteImport
+      parentRoute: typeof MemberRoute
+    }
+    '/member/nutrition': {
+      id: '/member/nutrition'
+      path: '/nutrition'
+      fullPath: '/member/nutrition'
+      preLoaderRoute: typeof MemberNutritionRouteImport
+      parentRoute: typeof MemberRoute
+    }
+    '/member/workout': {
+      id: '/member/workout'
+      path: '/workout'
+      fullPath: '/member/workout'
+      preLoaderRoute: typeof MemberWorkoutRouteImport
+      parentRoute: typeof MemberRoute
+    }
   }
 }
 
 interface AdminRouteChildren {
+  AdminAnalyticsRoute: typeof AdminAnalyticsRoute
   AdminAttendanceRoute: typeof AdminAttendanceRoute
   AdminExercisesRoute: typeof AdminExercisesRoute
   AdminMembersRoute: typeof AdminMembersRoute
   AdminMembershipsRoute: typeof AdminMembershipsRoute
+  AdminNotificationsRoute: typeof AdminNotificationsRoute
   AdminPaymentsRoute: typeof AdminPaymentsRoute
   AdminRegisterRoute: typeof AdminRegisterRoute
+  AdminSettingsRoute: typeof AdminSettingsRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminAnalyticsRoute: AdminAnalyticsRoute,
   AdminAttendanceRoute: AdminAttendanceRoute,
   AdminExercisesRoute: AdminExercisesRoute,
   AdminMembersRoute: AdminMembersRoute,
   AdminMembershipsRoute: AdminMembershipsRoute,
+  AdminNotificationsRoute: AdminNotificationsRoute,
   AdminPaymentsRoute: AdminPaymentsRoute,
   AdminRegisterRoute: AdminRegisterRoute,
+  AdminSettingsRoute: AdminSettingsRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface MemberRouteChildren {
+  MemberCalculatorRoute: typeof MemberCalculatorRoute
+  MemberExercisesRoute: typeof MemberExercisesRoute
+  MemberNutritionRoute: typeof MemberNutritionRoute
+  MemberWorkoutRoute: typeof MemberWorkoutRoute
+  MemberIndexRoute: typeof MemberIndexRoute
+}
+
+const MemberRouteChildren: MemberRouteChildren = {
+  MemberCalculatorRoute: MemberCalculatorRoute,
+  MemberExercisesRoute: MemberExercisesRoute,
+  MemberNutritionRoute: MemberNutritionRoute,
+  MemberWorkoutRoute: MemberWorkoutRoute,
+  MemberIndexRoute: MemberIndexRoute,
+}
+
+const MemberRouteWithChildren =
+  MemberRoute._addFileChildren(MemberRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
-  MemberRoute: MemberRoute,
+  MemberRoute: MemberRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
