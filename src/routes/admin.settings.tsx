@@ -28,7 +28,7 @@ function ToggleRow({ label, description, defaultChecked }: { label: string; desc
         <p className="text-sm font-medium">{label}</p>
         <p className="text-xs text-muted-foreground">{description}</p>
       </div>
-      <Switch defaultChecked={defaultChecked} />
+      <Switch defaultChecked={defaultChecked ?? false} />
     </div>
   );
 }
