@@ -23,9 +23,15 @@ import { Route as AdminPaymentsRouteImport } from './routes/admin.payments'
 import { Route as AdminRegisterRouteImport } from './routes/admin.register'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as MemberIndexRouteImport } from './routes/member.index'
+import { Route as MemberAchievementsRouteImport } from './routes/member.achievements'
+import { Route as MemberAttendanceRouteImport } from './routes/member.attendance'
 import { Route as MemberCalculatorRouteImport } from './routes/member.calculator'
+import { Route as MemberCoachRouteImport } from './routes/member.coach'
 import { Route as MemberExercisesRouteImport } from './routes/member.exercises'
+import { Route as MemberMembershipRouteImport } from './routes/member.membership'
 import { Route as MemberNutritionRouteImport } from './routes/member.nutrition'
+import { Route as MemberProfileRouteImport } from './routes/member.profile'
+import { Route as MemberProgressRouteImport } from './routes/member.progress'
 import { Route as MemberWorkoutRouteImport } from './routes/member.workout'
 
 const IndexRoute = IndexRouteImport.update({
@@ -98,9 +104,24 @@ const MemberIndexRoute = MemberIndexRouteImport.update({
   path: '/',
   getParentRoute: () => MemberRoute,
 } as any)
+const MemberAchievementsRoute = MemberAchievementsRouteImport.update({
+  id: '/achievements',
+  path: '/achievements',
+  getParentRoute: () => MemberRoute,
+} as any)
+const MemberAttendanceRoute = MemberAttendanceRouteImport.update({
+  id: '/attendance',
+  path: '/attendance',
+  getParentRoute: () => MemberRoute,
+} as any)
 const MemberCalculatorRoute = MemberCalculatorRouteImport.update({
   id: '/calculator',
   path: '/calculator',
+  getParentRoute: () => MemberRoute,
+} as any)
+const MemberCoachRoute = MemberCoachRouteImport.update({
+  id: '/coach',
+  path: '/coach',
   getParentRoute: () => MemberRoute,
 } as any)
 const MemberExercisesRoute = MemberExercisesRouteImport.update({
@@ -108,9 +129,24 @@ const MemberExercisesRoute = MemberExercisesRouteImport.update({
   path: '/exercises',
   getParentRoute: () => MemberRoute,
 } as any)
+const MemberMembershipRoute = MemberMembershipRouteImport.update({
+  id: '/membership',
+  path: '/membership',
+  getParentRoute: () => MemberRoute,
+} as any)
 const MemberNutritionRoute = MemberNutritionRouteImport.update({
   id: '/nutrition',
   path: '/nutrition',
+  getParentRoute: () => MemberRoute,
+} as any)
+const MemberProfileRoute = MemberProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => MemberRoute,
+} as any)
+const MemberProgressRoute = MemberProgressRouteImport.update({
+  id: '/progress',
+  path: '/progress',
   getParentRoute: () => MemberRoute,
 } as any)
 const MemberWorkoutRoute = MemberWorkoutRouteImport.update({
@@ -132,9 +168,15 @@ export interface FileRoutesByFullPath {
   '/admin/payments': typeof AdminPaymentsRoute
   '/admin/register': typeof AdminRegisterRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/member/achievements': typeof MemberAchievementsRoute
+  '/member/attendance': typeof MemberAttendanceRoute
   '/member/calculator': typeof MemberCalculatorRoute
+  '/member/coach': typeof MemberCoachRoute
   '/member/exercises': typeof MemberExercisesRoute
+  '/member/membership': typeof MemberMembershipRoute
   '/member/nutrition': typeof MemberNutritionRoute
+  '/member/profile': typeof MemberProfileRoute
+  '/member/progress': typeof MemberProgressRoute
   '/member/workout': typeof MemberWorkoutRoute
   '/admin/': typeof AdminIndexRoute
   '/member/': typeof MemberIndexRoute
@@ -150,9 +192,15 @@ export interface FileRoutesByTo {
   '/admin/payments': typeof AdminPaymentsRoute
   '/admin/register': typeof AdminRegisterRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/member/achievements': typeof MemberAchievementsRoute
+  '/member/attendance': typeof MemberAttendanceRoute
   '/member/calculator': typeof MemberCalculatorRoute
+  '/member/coach': typeof MemberCoachRoute
   '/member/exercises': typeof MemberExercisesRoute
+  '/member/membership': typeof MemberMembershipRoute
   '/member/nutrition': typeof MemberNutritionRoute
+  '/member/profile': typeof MemberProfileRoute
+  '/member/progress': typeof MemberProgressRoute
   '/member/workout': typeof MemberWorkoutRoute
   '/admin': typeof AdminIndexRoute
   '/member': typeof MemberIndexRoute
@@ -171,9 +219,15 @@ export interface FileRoutesById {
   '/admin/payments': typeof AdminPaymentsRoute
   '/admin/register': typeof AdminRegisterRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/member/achievements': typeof MemberAchievementsRoute
+  '/member/attendance': typeof MemberAttendanceRoute
   '/member/calculator': typeof MemberCalculatorRoute
+  '/member/coach': typeof MemberCoachRoute
   '/member/exercises': typeof MemberExercisesRoute
+  '/member/membership': typeof MemberMembershipRoute
   '/member/nutrition': typeof MemberNutritionRoute
+  '/member/profile': typeof MemberProfileRoute
+  '/member/progress': typeof MemberProgressRoute
   '/member/workout': typeof MemberWorkoutRoute
   '/admin/': typeof AdminIndexRoute
   '/member/': typeof MemberIndexRoute
@@ -193,9 +247,15 @@ export interface FileRouteTypes {
     | '/admin/payments'
     | '/admin/register'
     | '/admin/settings'
+    | '/member/achievements'
+    | '/member/attendance'
     | '/member/calculator'
+    | '/member/coach'
     | '/member/exercises'
+    | '/member/membership'
     | '/member/nutrition'
+    | '/member/profile'
+    | '/member/progress'
     | '/member/workout'
     | '/admin/'
     | '/member/'
@@ -211,9 +271,15 @@ export interface FileRouteTypes {
     | '/admin/payments'
     | '/admin/register'
     | '/admin/settings'
+    | '/member/achievements'
+    | '/member/attendance'
     | '/member/calculator'
+    | '/member/coach'
     | '/member/exercises'
+    | '/member/membership'
     | '/member/nutrition'
+    | '/member/profile'
+    | '/member/progress'
     | '/member/workout'
     | '/admin'
     | '/member'
@@ -231,9 +297,15 @@ export interface FileRouteTypes {
     | '/admin/payments'
     | '/admin/register'
     | '/admin/settings'
+    | '/member/achievements'
+    | '/member/attendance'
     | '/member/calculator'
+    | '/member/coach'
     | '/member/exercises'
+    | '/member/membership'
     | '/member/nutrition'
+    | '/member/profile'
+    | '/member/progress'
     | '/member/workout'
     | '/admin/'
     | '/member/'
@@ -345,11 +417,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MemberIndexRouteImport
       parentRoute: typeof MemberRoute
     }
+    '/member/achievements': {
+      id: '/member/achievements'
+      path: '/achievements'
+      fullPath: '/member/achievements'
+      preLoaderRoute: typeof MemberAchievementsRouteImport
+      parentRoute: typeof MemberRoute
+    }
+    '/member/attendance': {
+      id: '/member/attendance'
+      path: '/attendance'
+      fullPath: '/member/attendance'
+      preLoaderRoute: typeof MemberAttendanceRouteImport
+      parentRoute: typeof MemberRoute
+    }
     '/member/calculator': {
       id: '/member/calculator'
       path: '/calculator'
       fullPath: '/member/calculator'
       preLoaderRoute: typeof MemberCalculatorRouteImport
+      parentRoute: typeof MemberRoute
+    }
+    '/member/coach': {
+      id: '/member/coach'
+      path: '/coach'
+      fullPath: '/member/coach'
+      preLoaderRoute: typeof MemberCoachRouteImport
       parentRoute: typeof MemberRoute
     }
     '/member/exercises': {
@@ -359,11 +452,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MemberExercisesRouteImport
       parentRoute: typeof MemberRoute
     }
+    '/member/membership': {
+      id: '/member/membership'
+      path: '/membership'
+      fullPath: '/member/membership'
+      preLoaderRoute: typeof MemberMembershipRouteImport
+      parentRoute: typeof MemberRoute
+    }
     '/member/nutrition': {
       id: '/member/nutrition'
       path: '/nutrition'
       fullPath: '/member/nutrition'
       preLoaderRoute: typeof MemberNutritionRouteImport
+      parentRoute: typeof MemberRoute
+    }
+    '/member/profile': {
+      id: '/member/profile'
+      path: '/profile'
+      fullPath: '/member/profile'
+      preLoaderRoute: typeof MemberProfileRouteImport
+      parentRoute: typeof MemberRoute
+    }
+    '/member/progress': {
+      id: '/member/progress'
+      path: '/progress'
+      fullPath: '/member/progress'
+      preLoaderRoute: typeof MemberProgressRouteImport
       parentRoute: typeof MemberRoute
     }
     '/member/workout': {
@@ -405,17 +519,29 @@ const AdminRouteChildren: AdminRouteChildren = {
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface MemberRouteChildren {
+  MemberAchievementsRoute: typeof MemberAchievementsRoute
+  MemberAttendanceRoute: typeof MemberAttendanceRoute
   MemberCalculatorRoute: typeof MemberCalculatorRoute
+  MemberCoachRoute: typeof MemberCoachRoute
   MemberExercisesRoute: typeof MemberExercisesRoute
+  MemberMembershipRoute: typeof MemberMembershipRoute
   MemberNutritionRoute: typeof MemberNutritionRoute
+  MemberProfileRoute: typeof MemberProfileRoute
+  MemberProgressRoute: typeof MemberProgressRoute
   MemberWorkoutRoute: typeof MemberWorkoutRoute
   MemberIndexRoute: typeof MemberIndexRoute
 }
 
 const MemberRouteChildren: MemberRouteChildren = {
+  MemberAchievementsRoute: MemberAchievementsRoute,
+  MemberAttendanceRoute: MemberAttendanceRoute,
   MemberCalculatorRoute: MemberCalculatorRoute,
+  MemberCoachRoute: MemberCoachRoute,
   MemberExercisesRoute: MemberExercisesRoute,
+  MemberMembershipRoute: MemberMembershipRoute,
   MemberNutritionRoute: MemberNutritionRoute,
+  MemberProfileRoute: MemberProfileRoute,
+  MemberProgressRoute: MemberProgressRoute,
   MemberWorkoutRoute: MemberWorkoutRoute,
   MemberIndexRoute: MemberIndexRoute,
 }
