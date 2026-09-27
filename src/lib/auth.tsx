@@ -100,10 +100,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = useCallback(() => {
-    window.localStorage.removeItem(STORAGE_KEY);
-    window.localStorage.removeItem("smartgym.token");
-    setUser(null);
-  }, []);
+  window.localStorage.removeItem(STORAGE_KEY);
+  window.localStorage.removeItem("smartgym.token");
+  setUser(null);
+}, []);
 
   const value = useMemo(() => ({ user, ready, signIn, signOut }), [user, ready, signIn, signOut]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

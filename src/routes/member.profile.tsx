@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { PageHeader, StatusBadge } from "@/components/common/ui-kit";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -8,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { members } from "@/lib/mock-data";
+
 
 export const Route = createFileRoute("/member/profile")({
   head: () => ({
@@ -23,7 +24,23 @@ export const Route = createFileRoute("/member/profile")({
 });
 
 function ProfilePage() {
-  const me = members[0]!;
+  const [profile, setProfile] = useState<any>(null);
+  useEffect(() => {
+  const token = localStorage.getItem("smartgym.token");
+
+  fetch("http://localhost:5000/api/auth/profile", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      setProfile(data.user);
+    });
+}, []);
+     if (!profile) {
+  return <p>Loading profile...</p>;
+}
 
   return (
     <>
@@ -33,30 +50,34 @@ function ProfilePage() {
         <Card className="h-fit">
           <CardContent className="flex flex-col items-center p-6 text-center">
             <Avatar className="size-20">
-              <AvatarFallback className="bg-primary text-lg text-primary-foreground">RS</AvatarFallback>
+              <AvatarFallback className="bg-primary text-lg text-primary-foreground">{profile.name
+  .split(" ")
+  .map((word: string) => word[0])
+  .join("")
+  .toUpperCase()}</AvatarFallback>
             </Avatar>
-            <p className="mt-4 font-display text-lg font-semibold">{me.name}</p>
-            <p className="text-sm text-muted-foreground">{me.email}</p>
+            <p className="mt-4 font-display text-lg font-semibold">{profile.name}</p>
+            <p className="text-sm text-muted-foreground">{profile.email}</p>
             <div className="mt-3">
-              <StatusBadge status={me.status} />
+              <StatusBadge status="Active" />
             </div>
             <Separator className="my-5" />
             <dl className="w-full space-y-2 text-left text-sm">
               <div className="flex justify-between">
                 <dt className="text-muted-foreground">Member ID</dt>
-                <dd className="font-medium">{me.id}</dd>
+                <dd className="font-medium">{profile.id}</dd>
               </div>
               <div className="flex justify-between">
                 <dt className="text-muted-foreground">Plan</dt>
-                <dd className="font-medium">{me.plan}</dd>
+                <dd className="font-medium">{profile.member?.membershipPlan}</dd>
               </div>
               <div className="flex justify-between">
                 <dt className="text-muted-foreground">Goal</dt>
-                <dd className="font-medium">{me.goal}</dd>
+                <dd className="font-medium">{profile.member?.primaryGoal}</dd>
               </div>
               <div className="flex justify-between">
                 <dt className="text-muted-foreground">Experience</dt>
-                <dd className="font-medium">{me.experience}</dd>
+                <dd className="font-medium">{profile.member?.experienceLevel}</dd>
               </div>
             </dl>
           </CardContent>
@@ -69,48 +90,77 @@ function ProfilePage() {
             </CardHeader>
             <CardContent>
               <form
-                className="grid gap-4 sm:grid-cols-2"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  toast.success("Profile updated");
-                }}
-              >
+  className="grid gap-4 sm:grid-cols-2"
+  onSubmit={async (e) => {
+  e.preventDefault();
+
+  const formData = new FormData(e.currentTarget);
+  const data = Object.fromEntries(formData);
+  const token = localStorage.getItem("smartgym.token");
+  
+  const response = await fetch("http://localhost:5000/api/auth/profile", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+  const result = await response.json();
+  if (result.success) {
+  toast.success(result.message);
+  window.location.reload();
+}
+}}
+>
                 <div className="space-y-2">
                   <Label>Full name</Label>
-                  <Input defaultValue={me.name} />
+                  <Input defaultValue={profile.name} />
                 </div>
                 <div className="space-y-2">
                   <Label>Email</Label>
-                  <Input type="email" defaultValue={me.email} />
+                  <Input type="email" defaultValue={profile.email} />
                 </div>
                 <div className="space-y-2">
                   <Label>Phone</Label>
-                  <Input defaultValue={me.phone} />
+                  <Input name="phone" defaultValue={profile.member?.phone} />
                 </div>
                 <div className="space-y-2">
                   <Label>Date of birth</Label>
-                  <Input type="date" defaultValue={me.dob} />
+                  <Input
+  name="dateOfBirth"
+  type="date"
+  defaultValue={profile.member?.dateOfBirth?.slice(0, 10)}
+/>
                 </div>
                 <div className="space-y-2 sm:col-span-2">
                   <Label>Address</Label>
-                  <Input defaultValue={me.address} />
+                  <Input name="address" defaultValue={profile.member?.address} />
                 </div>
                 <div className="space-y-2">
                   <Label>Height (cm)</Label>
-                  <Input type="number" defaultValue={me.height} />
+                  <Input
+  name="height"
+  type="number"
+  defaultValue={profile.member?.height}
+/>
                 </div>
                 <div className="space-y-2">
                   <Label>Weight (kg)</Label>
-                  <Input type="number" defaultValue={me.weight} />
+                  <Input
+  name="weight"
+  type="number"
+  defaultValue={profile.member?.weight}
+/>
                 </div>
                 <div className="space-y-2">
                   <Label>Goal</Label>
-                  <Select defaultValue={me.goal}>
+                  <Select name="primaryGoal" defaultValue={profile.member?.primaryGoal}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={me.goal}>{me.goal}</SelectItem>
+                      
                       <SelectItem value="Weight Loss">Weight Loss</SelectItem>
                       <SelectItem value="Muscle Gain">Muscle Gain</SelectItem>
                       <SelectItem value="General Fitness">General Fitness</SelectItem>
@@ -119,7 +169,11 @@ function ProfilePage() {
                 </div>
                 <div className="space-y-2">
                   <Label>Training days / week</Label>
-                  <Input type="number" defaultValue={me.trainingDays} />
+                  <Input
+  name="trainingDaysPerWeek"
+  type="number"
+  defaultValue={profile.member?.trainingDaysPerWeek}
+/>
                 </div>
                 <div className="sm:col-span-2">
                   <Button type="submit">Save changes</Button>
@@ -134,19 +188,31 @@ function ProfilePage() {
             </CardHeader>
             <CardContent>
               <form
-                className="grid gap-4 sm:grid-cols-2"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  toast.success("Password updated");
-                }}
-              >
+  className="grid gap-4 sm:grid-cols-2"
+  onSubmit={async (e) => {
+    e.preventDefault();
+    console.log("Password form submitted");
+    const formData = new FormData(e.currentTarget);
+    const data = Object.fromEntries(formData);
+
+    console.log(data);
+  }}
+>
                 <div className="space-y-2">
                   <Label>Current password</Label>
-                  <Input type="password" placeholder="••••••••" />
+                  <Input
+  name="currentPassword"
+  type="password"
+  placeholder="••••••••"
+/>
                 </div>
                 <div className="space-y-2">
                   <Label>New password</Label>
-                  <Input type="password" placeholder="••••••••" />
+                  <Input
+  name="newPassword"
+  type="password"
+  placeholder="••••••••"
+/>
                 </div>
                 <div className="sm:col-span-2">
                   <Button type="submit" variant="outline">

@@ -157,6 +157,18 @@ router.post("/admin/create-member", authMiddleware, roleMiddleware(["admin"]), a
 
     await newUser.save();
 
+    let expiryDate = new Date(membershipStartDate);
+
+if (membershipPlan === "Basic") {
+    expiryDate.setMonth(expiryDate.getMonth() + 1);
+} else if (membershipPlan === "Standard") {
+    expiryDate.setMonth(expiryDate.getMonth() + 3);
+} else if (membershipPlan === "Premium") {
+    expiryDate.setMonth(expiryDate.getMonth() + 6);
+} else if (membershipPlan === "Annual") {
+    expiryDate.setMonth(expiryDate.getMonth() + 12);
+}
+
     const newMember = new Member({
       userId: newUser._id,
       name,
@@ -173,6 +185,7 @@ router.post("/admin/create-member", authMiddleware, roleMiddleware(["admin"]), a
       medicalNotes: medicalNotes || "",
       membershipPlan,
       membershipStartDate,
+      membershipExpiryDate: expiryDate,
       paymentMethod: paymentMethod || "Cash",
       amountPaid: amountPaid || 0
     });
@@ -191,6 +204,17 @@ router.post("/admin/create-member", authMiddleware, roleMiddleware(["admin"]), a
       }
     });
 });
+
+
+router.get("/admin/members", authMiddleware, roleMiddleware(["admin"]), async(req, res) => {
+    const members = await Member.find().lean();
+
+    res.json({
+    success: true,
+    members
+});
+})
+
 
 router.get("/profile", authMiddleware, async(req, res) => {
     const userId = req.user.userId;
@@ -212,15 +236,91 @@ router.get("/profile", authMiddleware, async(req, res) => {
         email: user.email,
         role: user.role.toUpperCase(),
         member: memberProfile ? {
-          id: memberProfile._id,
-          membershipPlan: memberProfile.membershipPlan,
-          membershipStartDate: memberProfile.membershipStartDate,
-          phone: memberProfile.phone,
-          gender: memberProfile.gender,
-          address: memberProfile.address
-        } : null
+  id: memberProfile._id,
+  membershipPlan: memberProfile.membershipPlan,
+  membershipStartDate: memberProfile.membershipStartDate,
+  phone: memberProfile.phone,
+  gender: memberProfile.gender,
+  address: memberProfile.address,
+  height: memberProfile.height,
+  weight: memberProfile.weight,
+  primaryGoal: memberProfile.primaryGoal,
+  experienceLevel: memberProfile.experienceLevel
+} : null
       }
     });
+});
+
+router.put("/profile", authMiddleware, async(req, res) => {
+  const userId = req.user.userId;
+
+  const {
+    phone,
+    dateOfBirth,
+    address,
+    height,
+    weight,
+    primaryGoal,
+    experienceLevel,
+    trainingDaysPerWeek
+} = req.body;
+
+const member = await Member.findOne({ userId });
+
+if (!member) {
+    return res.status(404).json({
+        success: false,
+        message: "Member profile not found"
+    });
+}
+
+member.phone = phone;
+member.dateOfBirth = dateOfBirth;
+member.address = address;
+member.height = height;
+member.weight = weight;
+member.primaryGoal = primaryGoal;
+member.experienceLevel = experienceLevel;
+member.trainingDaysPerWeek = trainingDaysPerWeek;
+
+await member.save();
+
+res.json({
+    success: true,
+    message: "Profile updated successfully"
+});
+
+})
+
+router.put("/change-password", authMiddleware, async (req, res) => {
+     const userId = req.user.userId;
+     const { currentPassword, newPassword } = req.body;
+     const user = await User.findById(userId);
+     if (!user) {
+    return res.status(404).json({
+        success: false,
+        message: "User not found"
+    });
+   }
+   const isPasswordCorrect = await bcrypt.compare(
+    currentPassword,
+    user.password
+);
+
+  if (!isPasswordCorrect) {
+    return res.status(400).json({
+        success: false,
+        message: "Current password is incorrect"
+    });
+}
+
+const hashedPassword = await bcrypt.hash(newPassword, 10);
+user.password = hashedPassword;
+await user.save();
+res.json({
+    success: true,
+    message: "Password updated successfully"
+});
 });
 
 router.get("/admin-test",authMiddleware, roleMiddleware(["admin"]), (req, res) => {
@@ -229,6 +329,75 @@ router.get("/admin-test",authMiddleware, roleMiddleware(["admin"]), (req, res) =
         message: "Admin access granted"
     });
 })
+
+router.put(
+    "/admin/members/:memberId/membership",
+    authMiddleware,
+    roleMiddleware(["admin"]),
+    async (req, res) => {
+        try {
+            const { memberId } = req.params;
+            const { membershipPlan, membershipStartDate } = req.body;
+
+            const member = await Member.findById(memberId);
+
+            if (!member) {
+                return res.status(404).json({
+                    success: false,
+                    message: "Member not found"
+                });
+            }
+
+            const planDurations = {
+                Basic: 1,
+                Standard: 3,
+                Premium: 6,
+                Annual: 12
+            };
+
+            const months = planDurations[membershipPlan];
+
+            if (!months) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid membership plan"
+                });
+            }
+
+            const startDate = new Date(membershipStartDate);
+
+            if (isNaN(startDate.getTime())) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid membership start date"
+                });
+            }
+
+            const expiryDate = new Date(startDate);
+            expiryDate.setMonth(expiryDate.getMonth() + months);
+
+            member.membershipPlan = membershipPlan;
+            member.membershipStartDate = startDate;
+            member.membershipExpiryDate = expiryDate;
+
+            await member.save();
+
+            res.json({
+                success: true,
+                message: "Membership updated successfully",
+                member
+            });
+
+        } catch (error) {
+            console.error(error);
+
+            res.status(500).json({
+                success: false,
+                message: "Server error"
+            });
+        }
+    }
+);
 
 
 module.exports = router;

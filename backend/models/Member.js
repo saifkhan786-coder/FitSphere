@@ -73,6 +73,15 @@ const memberSchema = new mongoose.Schema({
         required: true
     },
 
+    membershipExpiryDate: {
+    type: Date,
+    required: true
+    },
+
+    membershipExpiryDate: {
+    type: Date
+    },
+
     paymentMethod: {
         type: String
     },
