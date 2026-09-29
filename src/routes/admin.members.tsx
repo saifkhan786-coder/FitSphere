@@ -2,7 +2,11 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Eye, Search, UserPlus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
-import { PageHeader, StatusBadge, currency } from "@/components/common/ui-kit";
+import {
+  PageHeader,
+  StatusBadge,
+  currency,
+} from "@/components/common/ui-kit";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -73,7 +77,8 @@ function MembersPage() {
   const [selected, setSelected] = useState<Member | null>(null);
 
   // Edit membership states
-  const [editingMember, setEditingMember] = useState<Member | null>(null);
+  const [editingMember, setEditingMember] =
+    useState<Member | null>(null);
   const [editStartDate, setEditStartDate] = useState("");
   const [editPlan, setEditPlan] = useState("");
 
@@ -90,12 +95,15 @@ function MembersPage() {
         console.log("Members API result:", data);
 
         if (!data.success) {
-          console.error("Failed to load members:", data.message);
+          console.error(
+            "Failed to load members:",
+            data.message
+          );
           return;
         }
 
-        const formattedMembers: Member[] = data.members.map(
-          (member: any) => ({
+        const formattedMembers: Member[] =
+          data.members.map((member: any) => ({
             id: member._id,
             name: member.name,
             email: "—",
@@ -103,51 +111,67 @@ function MembersPage() {
             gender: member.gender || "Other",
 
             dob: member.dateOfBirth
-              ? new Date(member.dateOfBirth).toLocaleDateString()
+              ? new Date(
+                  member.dateOfBirth
+                ).toLocaleDateString()
               : "—",
 
             address: member.address || "—",
             height: member.height || 0,
             weight: member.weight || 0,
             goal: member.primaryGoal || "—",
-            experience: member.experienceLevel || "Beginner",
-            trainingDays: member.trainingDaysPerWeek || 0,
+            experience:
+              member.experienceLevel || "Beginner",
+            trainingDays:
+              member.trainingDaysPerWeek || 0,
 
             plan: member.membershipPlan || "—",
 
             startDate: member.membershipStartDate
-            ? new Date(member.membershipStartDate)
-            .toISOString()
-            .split("T")[0]
-            : "",
+              ? new Date(
+                  member.membershipStartDate
+                )
+                  .toISOString()
+                  .split("T")[0]
+              : "",
 
             expiryDate: member.membershipExpiryDate
-              ? new Date(member.membershipExpiryDate).toLocaleDateString()
+              ? new Date(
+                  member.membershipExpiryDate
+                ).toLocaleDateString()
               : "—",
 
             fee: member.amountPaid || 0,
 
             paymentStatus:
-              member.amountPaid && member.amountPaid > 0
+              member.amountPaid &&
+              member.amountPaid > 0
                 ? "Paid"
                 : "Pending",
 
             status:
-              new Date(member.membershipExpiryDate) < new Date()
+              new Date(
+                member.membershipExpiryDate
+              ) < new Date()
                 ? "Expired"
-                : new Date(member.membershipExpiryDate) <=
+                : new Date(
+                      member.membershipExpiryDate
+                    ) <=
                     new Date(
-                      Date.now() + 7 * 24 * 60 * 60 * 1000
+                      Date.now() +
+                        7 * 24 * 60 * 60 * 1000
                     )
                   ? "Expiring Soon"
                   : "Active",
-          })
-        );
+          }));
 
         setMembers(formattedMembers);
       })
       .catch((error) => {
-        console.error("Members API error:", error);
+        console.error(
+          "Members API error:",
+          error
+        );
       });
   }, []);
 
@@ -163,22 +187,33 @@ function MembersPage() {
           m.phone.toLowerCase().includes(q);
 
         const matchStatus =
-          status === "all" || m.status === status;
+          status === "all" ||
+          m.status === status;
 
         const matchPlan =
-          plan === "all" || m.plan === plan;
+          plan === "all" ||
+          m.plan === plan;
 
-        return matchQ && matchStatus && matchPlan;
+        return (
+          matchQ &&
+          matchStatus &&
+          matchPlan
+        );
       }),
     [query, status, plan, members]
   );
 
   const pages = Math.max(
     1,
-    Math.ceil(filtered.length / PAGE_SIZE)
+    Math.ceil(
+      filtered.length / PAGE_SIZE
+    )
   );
 
-  const current = Math.min(page, pages);
+  const current = Math.min(
+    page,
+    pages
+  );
 
   const rows = filtered.slice(
     (current - 1) * PAGE_SIZE,
@@ -334,11 +369,15 @@ function MembersPage() {
                     </TableCell>
 
                     <TableCell>
-                      <StatusBadge status={m.paymentStatus} />
+                      <StatusBadge
+                        status={m.paymentStatus}
+                      />
                     </TableCell>
 
                     <TableCell>
-                      <StatusBadge status={m.status} />
+                      <StatusBadge
+                        status={m.status}
+                      />
                     </TableCell>
 
                     <TableCell className="text-right">
@@ -346,7 +385,9 @@ function MembersPage() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => setSelected(m)}
+                        onClick={() =>
+                          setSelected(m)
+                        }
                       >
                         <Eye className="size-4" />
 
@@ -361,12 +402,21 @@ function MembersPage() {
                         size="sm"
                         onClick={() => {
                           setEditingMember(m);
-                          setEditStartDate(m.startDate);
+
+                          setEditStartDate(
+                            m.startDate
+                          );
+
                           setEditPlan(
-  ["Basic", "Standard", "Premium", "Annual"].includes(m.plan)
-    ? m.plan
-    : "Basic"
-);
+                            [
+                              "Basic",
+                              "Standard",
+                              "Premium",
+                              "Annual",
+                            ].includes(m.plan)
+                              ? m.plan
+                              : "Basic"
+                          );
                         }}
                       >
                         Edit
@@ -388,7 +438,9 @@ function MembersPage() {
                 variant="outline"
                 size="sm"
                 disabled={current === 1}
-                onClick={() => setPage(current - 1)}
+                onClick={() =>
+                  setPage(current - 1)
+                }
               >
                 Previous
               </Button>
@@ -397,7 +449,9 @@ function MembersPage() {
                 variant="outline"
                 size="sm"
                 disabled={current === pages}
-                onClick={() => setPage(current + 1)}
+                onClick={() =>
+                  setPage(current + 1)
+                }
               >
                 Next
               </Button>
@@ -409,9 +463,11 @@ function MembersPage() {
       {/* View Member Dialog */}
       <Dialog
         open={!!selected}
-        onOpenChange={(o) =>
-          !o && setSelected(null)
-        }
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelected(null);
+          }
+        }}
       >
         <DialogContent className="max-w-lg">
           <DialogHeader>
@@ -423,28 +479,60 @@ function MembersPage() {
           {selected && (
             <div className="grid grid-cols-2 gap-4 text-sm">
               {[
-                ["Member ID", selected.id],
-                ["Email", selected.email],
-                ["Phone", selected.phone],
-                ["Gender", selected.gender],
-                ["Date of birth", selected.dob],
+                [
+                  "Member ID",
+                  selected.id,
+                ],
+                [
+                  "Email",
+                  selected.email,
+                ],
+                [
+                  "Phone",
+                  selected.phone,
+                ],
+                [
+                  "Gender",
+                  selected.gender,
+                ],
+                [
+                  "Date of birth",
+                  selected.dob,
+                ],
                 [
                   "Height / Weight",
                   `${selected.height} cm · ${selected.weight} kg`,
                 ],
-                ["Goal", selected.goal],
-                ["Experience", selected.experience],
+                [
+                  "Goal",
+                  selected.goal,
+                ],
+                [
+                  "Experience",
+                  selected.experience,
+                ],
                 [
                   "Training days",
                   `${selected.trainingDays} / week`,
                 ],
                 [
                   "Plan",
-                  `${selected.plan} · ${currency(selected.fee)}`,
+                  `${selected.plan} · ${currency(
+                    selected.fee
+                  )}`,
                 ],
-                ["Start date", selected.startDate],
-                ["Expiry date", selected.expiryDate],
-                ["Address", selected.address],
+                [
+                  "Start date",
+                  selected.startDate,
+                ],
+                [
+                  "Expiry date",
+                  selected.expiryDate,
+                ],
+                [
+                  "Address",
+                  selected.address,
+                ],
               ].map(([label, value]) => (
                 <div key={label}>
                   <p className="text-xs text-muted-foreground">
@@ -461,124 +549,170 @@ function MembersPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Edit Membership Dialog */}
       <Dialog
-  open={!!editingMember}
-  onOpenChange={(open) => {
-    if (!open) {
-      setEditingMember(null);
-    }
-  }}
->
-  <DialogContent className="max-w-md">
-    <DialogHeader>
-      <DialogTitle>
-        Edit Membership
-      </DialogTitle>
-    </DialogHeader>
+        open={!!editingMember}
+        onOpenChange={(open) => {
+          if (!open) {
+            setEditingMember(null);
+          }
+        }}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              Edit Membership
+            </DialogTitle>
+          </DialogHeader>
 
-    {editingMember && (
-      <div className="space-y-5">
-        <div>
-          <p className="text-sm font-medium">
-            Member
-          </p>
+          {editingMember && (
+            <div className="space-y-5">
+              <div>
+                <p className="text-sm font-medium">
+                  Member
+                </p>
 
-          <p className="text-sm text-muted-foreground">
-            {editingMember.name}
-          </p>
-        </div>
+                <p className="text-sm text-muted-foreground">
+                  {editingMember.name}
+                </p>
+              </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium">
-            Entry Date
-          </label>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Entry Date
+                </label>
 
-          <Input
-            type="date"
-            value={editStartDate}
-            onChange={(e) =>
-              setEditStartDate(e.target.value)
-            }
-          />
-        </div>
+                <Input
+                  type="date"
+                  value={editStartDate}
+                  onChange={(e) =>
+                    setEditStartDate(
+                      e.target.value
+                    )
+                  }
+                />
+              </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium">
-            Membership Plan
-          </label>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Membership Plan
+                </label>
 
-          <Select
-            value={editPlan}
-            onValueChange={setEditPlan}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select plan" />
-            </SelectTrigger>
+                <Select
+                  value={editPlan}
+                  onValueChange={setEditPlan}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select plan" />
+                  </SelectTrigger>
 
-            <SelectContent>
-              <SelectItem value="Basic">
-                Basic
-              </SelectItem>
+                  <SelectContent>
+                    <SelectItem value="Basic">
+                      Basic
+                    </SelectItem>
 
-              <SelectItem value="Standard">
-                Standard
-              </SelectItem>
+                    <SelectItem value="Standard">
+                      Standard
+                    </SelectItem>
 
-              <SelectItem value="Premium">
-                Premium
-              </SelectItem>
+                    <SelectItem value="Premium">
+                      Premium
+                    </SelectItem>
 
-              <SelectItem value="Annual">
-                Annual
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+                    <SelectItem value="Annual">
+                      Annual
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-        <div className="flex justify-end gap-2">
-          <Button
-            variant="outline"
-            onClick={() => setEditingMember(null)}
-          >
-            Cancel
-          </Button>
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    setEditingMember(null)
+                  }
+                >
+                  Cancel
+                </Button>
 
-          <Button
-  onClick={async () => {
-    const token = localStorage.getItem("smartgym.token");
+                <Button
+                  onClick={async () => {
+                    const token =
+                      localStorage.getItem(
+                        "smartgym.token"
+                      );
 
-    const response = await fetch(
-      `http://localhost:5000/api/auth/admin/members/${editingMember?.id}/membership`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          membershipStartDate: editStartDate,
-          membershipPlan: editPlan,
-        }),
-      }
-    );
+                    const response =
+                      await fetch(
+                        `http://localhost:5000/api/auth/admin/members/${editingMember?.id}/membership`,
+                        {
+                          method: "PUT",
+                          headers: {
+                            "Content-Type":
+                              "application/json",
+                            Authorization: `Bearer ${token}`,
+                          },
+                          body: JSON.stringify({
+                            membershipStartDate:
+                              editStartDate,
+                            membershipPlan:
+                              editPlan,
+                          }),
+                        }
+                      );
 
-    const data = await response.json();
+                    const data =
+                      await response.json();
 
-    console.log("Membership update result:", data);
+                    console.log(
+                      "Membership update result:",
+                      data
+                    );
 
-    if (data.success) {
-  setEditingMember(null);
-  window.location.reload();
-}
-  }}
->
-  Save Changes
-</Button>
-        </div>
-      </div>
-    )}
-  </DialogContent>
-</Dialog>
+                    if (data.success) {
+                      // Close dialog
+                      setEditingMember(null);
+
+                      // Update the member in React state
+                      // without refreshing the page
+                      setMembers(
+                        (currentMembers) =>
+                          currentMembers.map(
+                            (member) =>
+                              member.id ===
+                              editingMember?.id
+                                ? {
+                                    ...member,
+
+                                    plan: data.member
+                                      .membershipPlan,
+
+                                    startDate: new Date(
+  data.member.membershipStartDate
+)
+  .toISOString()
+  .split("T")[0] || "",
+
+                                    expiryDate:
+                                      new Date(
+                                        data.member
+                                          .membershipExpiryDate
+                                      ).toLocaleDateString(),
+                                  }
+                                : member
+                          )
+                      );
+                    }
+                  }}
+                >
+                  Save Changes
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
