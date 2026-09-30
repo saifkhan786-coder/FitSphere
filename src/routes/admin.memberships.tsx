@@ -34,6 +34,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+import {
   Table,
   TableBody,
   TableCell,
@@ -75,11 +83,13 @@ function MembershipsPage() {
   const [members, setMembers] = useState<any[]>([]);
   const [plans, setPlans] = useState<any[]>([]);
 
-  // Plan currently being edited
+  // -----------------------------------
+  // Edit Plan states
+  // -----------------------------------
+
   const [editingPlan, setEditingPlan] =
     useState<any>(null);
 
-  // Form values for editing plan
   const [editName, setEditName] =
     useState("");
 
@@ -93,6 +103,22 @@ function MembershipsPage() {
     useState("");
 
   const [savingPlan, setSavingPlan] =
+    useState(false);
+
+  // -----------------------------------
+  // Renew Membership states
+  // -----------------------------------
+
+  const [renewingMember, setRenewingMember] =
+    useState<any>(null);
+
+  const [renewStartDate, setRenewStartDate] =
+    useState("");
+
+  const [renewPlan, setRenewPlan] =
+    useState("");
+
+  const [savingRenewal, setSavingRenewal] =
     useState(false);
 
   // -----------------------------------
@@ -125,6 +151,7 @@ function MembershipsPage() {
             "Failed to load members:",
             data.message
           );
+
           return;
         }
 
@@ -278,139 +305,323 @@ function MembershipsPage() {
   // Save edited plan
   // -----------------------------------
 
-  const handleUpdatePlan = async () => {
-    if (!editingPlan) {
-      return;
-    }
+  const handleUpdatePlan =
+    async () => {
+      if (!editingPlan) {
+        return;
+      }
 
-    if (
-      !editName.trim() ||
-      !editPrice ||
-      !editMonths
-    ) {
-      toast.error(
-        "Please fill all required fields"
-      );
-
-      return;
-    }
-
-    const price =
-      Number(editPrice);
-
-    const months =
-      Number(editMonths);
-
-    if (
-      isNaN(price) ||
-      price <= 0
-    ) {
-      toast.error(
-        "Please enter a valid price"
-      );
-
-      return;
-    }
-
-    if (
-      isNaN(months) ||
-      months <= 0
-    ) {
-      toast.error(
-        "Please enter a valid duration"
-      );
-
-      return;
-    }
-
-    const perks =
-      editPerks
-        .split("\n")
-        .map(
-          (perk) =>
-            perk.trim()
-        )
-        .filter(
-          (perk) =>
-            perk.length > 0
-        );
-
-    try {
-      setSavingPlan(true);
-
-      const response =
-        await fetch(
-          `http://localhost:5000/api/plans/${editingPlan._id}`,
-          {
-            method: "PUT",
-
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-
-            body: JSON.stringify({
-              name: editName.trim(),
-              price,
-              months,
-              perks,
-            }),
-          }
-        );
-
-      const data =
-        await response.json();
-
-      if (!response.ok || !data.success) {
+      if (
+        !editName.trim() ||
+        !editPrice ||
+        !editMonths
+      ) {
         toast.error(
-          data.message ||
-            "Failed to update plan"
+          "Please fill all required fields"
         );
 
         return;
       }
 
-      // Update plan in frontend
-      setPlans(
-        (currentPlans) =>
-          currentPlans.map(
-            (plan) =>
-              plan._id ===
-              editingPlan._id
-                ? data.plan
-                : plan
+      const price =
+        Number(editPrice);
+
+      const months =
+        Number(editMonths);
+
+      if (
+        isNaN(price) ||
+        price <= 0
+      ) {
+        toast.error(
+          "Please enter a valid price"
+        );
+
+        return;
+      }
+
+      if (
+        isNaN(months) ||
+        months <= 0
+      ) {
+        toast.error(
+          "Please enter a valid duration"
+        );
+
+        return;
+      }
+
+      const perks =
+        editPerks
+          .split("\n")
+          .map(
+            (perk) =>
+              perk.trim()
           )
+          .filter(
+            (perk) =>
+              perk.length > 0
+          );
+
+      try {
+        setSavingPlan(true);
+
+        const response =
+          await fetch(
+            `http://localhost:5000/api/plans/${editingPlan._id}`,
+            {
+              method: "PUT",
+
+              headers: {
+                "Content-Type":
+                  "application/json",
+              },
+
+              body: JSON.stringify({
+                name: editName.trim(),
+                price,
+                months,
+                perks,
+              }),
+            }
+          );
+
+        const data =
+          await response.json();
+
+        if (
+          !response.ok ||
+          !data.success
+        ) {
+          toast.error(
+            data.message ||
+              "Failed to update plan"
+          );
+
+          return;
+        }
+
+        setPlans(
+          (currentPlans) =>
+            currentPlans.map(
+              (plan) =>
+                plan._id ===
+                editingPlan._id
+                  ? data.plan
+                  : plan
+            )
+        );
+
+        toast.success(
+          "Plan updated successfully"
+        );
+
+        closeEditPlan();
+
+      } catch (error) {
+        console.error(
+          "Update plan error:",
+          error
+        );
+
+        toast.error(
+          "Something went wrong while updating the plan"
+        );
+      } finally {
+        setSavingPlan(false);
+      }
+    };
+
+  // -----------------------------------
+  // Open Renew dialog
+  // -----------------------------------
+
+  const openRenewDialog = (
+    member: any
+  ) => {
+    setRenewingMember(member);
+
+    // Use today's date as default
+    const today =
+  new Date()
+    .toISOString()
+    .substring(0, 10);
+
+setRenewStartDate(today);
+
+    // Use current member plan as default
+    const validPlan =
+      plans.some(
+        (plan) =>
+          plan.name ===
+          member.plan
       );
 
-      toast.success(
-        "Plan updated successfully"
-      );
-
-      closeEditPlan();
-
-    } catch (error) {
-      console.error(
-        "Update plan error:",
-        error
-      );
-
-      toast.error(
-        "Something went wrong while updating the plan"
-      );
-    } finally {
-      setSavingPlan(false);
-    }
+    setRenewPlan(
+      validPlan
+        ? member.plan
+        : plans[0]?.name || ""
+    );
   };
+
+  // -----------------------------------
+  // Close Renew dialog
+  // -----------------------------------
+
+  const closeRenewDialog = () => {
+    if (savingRenewal) {
+      return;
+    }
+
+    setRenewingMember(null);
+    setRenewStartDate("");
+    setRenewPlan("");
+  };
+
+  // -----------------------------------
+  // Renew membership
+  // -----------------------------------
+
+  const handleRenewMembership =
+    async () => {
+      if (!renewingMember) {
+        return;
+      }
+
+      if (
+        !renewStartDate ||
+        !renewPlan
+      ) {
+        toast.error(
+          "Please select a date and membership plan"
+        );
+
+        return;
+      }
+
+      try {
+        setSavingRenewal(true);
+
+        const token =
+          localStorage.getItem(
+            "smartgym.token"
+          );
+
+        const response =
+          await fetch(
+            `http://localhost:5000/api/auth/admin/members/${renewingMember.id}/membership`,
+            {
+              method: "PUT",
+
+              headers: {
+                "Content-Type":
+                  "application/json",
+
+                Authorization:
+                  `Bearer ${token}`,
+              },
+
+              body: JSON.stringify({
+                membershipStartDate:
+                  renewStartDate,
+
+                membershipPlan:
+                  renewPlan,
+              }),
+            }
+          );
+
+        const data =
+          await response.json();
+
+        console.log(
+          "Renew membership result:",
+          data
+        );
+
+        if (
+          !response.ok ||
+          !data.success
+        ) {
+          toast.error(
+            data.message ||
+              "Failed to renew membership"
+          );
+
+          return;
+        }
+
+        // Update member in React state
+        setMembers(
+          (currentMembers) =>
+            currentMembers.map(
+              (member) =>
+                member.id ===
+                renewingMember.id
+                  ? {
+                      ...member,
+
+                      plan:
+                        data.member
+                          .membershipPlan,
+
+                      expiryDate:
+                        new Date(
+                          data.member
+                            .membershipExpiryDate
+                        ).toLocaleDateString(),
+
+                      status:
+                        "Active",
+                    }
+                  : member
+            )
+        );
+
+        toast.success(
+          `${renewingMember.name}'s membership renewed successfully`
+        );
+
+        // Close dialog
+        closeRenewDialog();
+
+      } catch (error) {
+        console.error(
+          "Renew membership error:",
+          error
+        );
+
+        toast.error(
+          "Something went wrong while renewing membership"
+        );
+      } finally {
+        setSavingRenewal(false);
+      }
+    };
 
   // -----------------------------------
   // Membership calculations
   // -----------------------------------
 
+  // Members whose membership expires
+  // within the next 7 days
   const expiring =
     members.filter(
       (member) =>
         member.status ===
         "Expiring Soon"
+    );
+
+  // Members that are either:
+  // 1. Expiring soon
+  // 2. Already expired
+  const renewalMembers =
+    members.filter(
+      (member) =>
+        member.status ===
+          "Expiring Soon" ||
+        member.status ===
+          "Expired"
     );
 
   const totalActive =
@@ -432,6 +643,7 @@ function MembershipsPage() {
       {/* -------------------------------- */}
 
       <div className="grid gap-4 sm:grid-cols-3">
+
         <StatCard
           label="Active memberships"
           value={totalActive}
@@ -474,6 +686,7 @@ function MembershipsPage() {
           icon={Check}
           tone="accent"
         />
+
       </div>
 
       {/* -------------------------------- */}
@@ -481,42 +694,59 @@ function MembershipsPage() {
       {/* -------------------------------- */}
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+
         {plans.map(
           (plan) => (
+
             <Card
               key={plan._id}
               className="flex flex-col transition-shadow hover:shadow-[var(--shadow-lift)]"
             >
+
               <CardHeader>
+
                 <CardTitle className="flex items-baseline justify-between text-base">
+
                   {plan.name}
 
                   <span className="text-xs font-normal text-muted-foreground">
+
                     {plan.months}{" "}
+
                     month
+
                     {plan.months >
                     1
                       ? "s"
                       : ""}
+
                   </span>
+
                 </CardTitle>
+
               </CardHeader>
 
               <CardContent className="flex flex-1 flex-col">
+
                 <p className="font-display text-3xl font-semibold tracking-tight">
+
                   {currency(
                     plan.price
                   )}
+
                 </p>
 
                 <p className="mt-1 text-xs text-muted-foreground">
+
                   {currency(
                     Math.round(
                       plan.price /
                         plan.months
                     )
                   )}{" "}
+
                   / month ·{" "}
+
                   {
                     members.filter(
                       (member) =>
@@ -524,29 +754,37 @@ function MembershipsPage() {
                         plan.name
                     ).length
                   }{" "}
+
                   members
+
                 </p>
 
                 <ul className="mt-4 flex-1 space-y-2 text-sm">
+
                   {plan.perks.map(
                     (
                       perk: string
                     ) => (
+
                       <li
                         key={perk}
                         className="flex gap-2"
                       >
+
                         <Check className="mt-0.5 size-4 shrink-0 text-success" />
 
                         <span className="text-muted-foreground">
+
                           {perk}
+
                         </span>
+
                       </li>
+
                     )
                   )}
-                </ul>
 
-                {/* Edit Plan Button */}
+                </ul>
 
                 <Button
                   variant="outline"
@@ -559,10 +797,14 @@ function MembershipsPage() {
                 >
                   Edit plan
                 </Button>
+
               </CardContent>
+
             </Card>
+
           )
         )}
+
       </div>
 
       {/* -------------------------------- */}
@@ -570,17 +812,25 @@ function MembershipsPage() {
       {/* -------------------------------- */}
 
       <Card className="mt-6">
+
         <CardHeader>
+
           <CardTitle className="text-base">
             Upcoming renewals
           </CardTitle>
+
         </CardHeader>
 
         <CardContent className="px-0">
+
           <div className="overflow-x-auto">
+
             <Table>
+
               <TableHeader>
+
                 <TableRow>
+
                   <TableHead className="pl-6">
                     Member
                   </TableHead>
@@ -601,44 +851,47 @@ function MembershipsPage() {
                     Status
                   </TableHead>
 
-                  <TableHead className="pr-6 text-right">
+                  <TableHead className="text-right">
                     Action
                   </TableHead>
+
+                  <TableHead className="pr-6 text-right">
+                    Renew
+                  </TableHead>
+
                 </TableRow>
+
               </TableHeader>
 
               <TableBody>
-                {expiring.map(
+
+                {renewalMembers.map(
                   (member) => (
+
                     <TableRow
                       key={
                         member.id
                       }
                     >
+
                       <TableCell className="pl-6">
+
                         <p className="font-medium">
-                          {
-                            member.name
-                          }
+                          {member.name}
                         </p>
 
                         <p className="text-xs text-muted-foreground">
-                          {
-                            member.id
-                          }
+                          {member.id}
                         </p>
+
                       </TableCell>
 
                       <TableCell>
-                        {
-                          member.plan
-                        }
+                        {member.plan}
                       </TableCell>
 
                       <TableCell className="text-sm text-muted-foreground">
-                        {
-                          member.expiryDate
-                        }
+                        {member.expiryDate}
                       </TableCell>
 
                       <TableCell>
@@ -648,14 +901,19 @@ function MembershipsPage() {
                       </TableCell>
 
                       <TableCell>
+
                         <StatusBadge
                           status={
                             member.status
                           }
                         />
+
                       </TableCell>
 
-                      <TableCell className="pr-6 text-right">
+                      {/* Existing Action */}
+
+                      <TableCell className="text-right">
+
                         <Button
                           size="sm"
                           variant="outline"
@@ -667,14 +925,39 @@ function MembershipsPage() {
                         >
                           Send reminder
                         </Button>
+
                       </TableCell>
+
+                      {/* Renew */}
+
+                      <TableCell className="pr-6 text-right">
+
+                        <Button
+                          size="sm"
+                          onClick={() =>
+                            openRenewDialog(
+                              member
+                            )
+                          }
+                        >
+                          Renew
+                        </Button>
+
+                      </TableCell>
+
                     </TableRow>
+
                   )
                 )}
+
               </TableBody>
+
             </Table>
+
           </div>
+
         </CardContent>
+
       </Card>
 
       {/* ================================= */}
@@ -688,22 +971,32 @@ function MembershipsPage() {
         onOpenChange={(
           open
         ) => {
+
           if (!open) {
             closeEditPlan();
           }
+
         }}
       >
+
         <DialogContent className="sm:max-w-[500px]">
+
           <DialogHeader>
+
             <DialogTitle>
-              Edit {editingPlan?.name} Plan
+              Edit{" "}
+              {editingPlan?.name}{" "}
+              Plan
             </DialogTitle>
+
           </DialogHeader>
 
           <div className="space-y-5 py-4">
+
             {/* Plan Name */}
 
             <div className="space-y-2">
+
               <Label htmlFor="plan-name">
                 Plan name
               </Label>
@@ -718,11 +1011,13 @@ function MembershipsPage() {
                 }
                 placeholder="Basic"
               />
+
             </div>
 
             {/* Price */}
 
             <div className="space-y-2">
+
               <Label htmlFor="plan-price">
                 Price (₹)
               </Label>
@@ -739,11 +1034,13 @@ function MembershipsPage() {
                 }
                 placeholder="1100"
               />
+
             </div>
 
             {/* Duration */}
 
             <div className="space-y-2">
+
               <Label htmlFor="plan-months">
                 Duration (months)
               </Label>
@@ -760,11 +1057,13 @@ function MembershipsPage() {
                 }
                 placeholder="1"
               />
+
             </div>
 
             {/* Perks */}
 
             <div className="space-y-2">
+
               <Label htmlFor="plan-perks">
                 Perks
               </Label>
@@ -786,11 +1085,13 @@ function MembershipsPage() {
               <p className="text-xs text-muted-foreground">
                 Enter one perk per line.
               </p>
+
             </div>
 
             {/* Buttons */}
 
             <div className="flex justify-end gap-2 pt-2">
+
               <Button
                 type="button"
                 variant="outline"
@@ -817,10 +1118,176 @@ function MembershipsPage() {
                   ? "Saving..."
                   : "Save changes"}
               </Button>
+
             </div>
+
           </div>
+
         </DialogContent>
+
       </Dialog>
+
+      {/* ================================= */}
+      {/* RENEW MEMBERSHIP DIALOG */}
+      {/* ================================= */}
+
+      <Dialog
+        open={
+          renewingMember !== null
+        }
+        onOpenChange={(
+          open
+        ) => {
+
+          if (!open) {
+            closeRenewDialog();
+          }
+
+        }}
+      >
+
+        <DialogContent className="sm:max-w-[450px]">
+
+          <DialogHeader>
+
+            <DialogTitle>
+              Renew Membership
+            </DialogTitle>
+
+          </DialogHeader>
+
+          {renewingMember && (
+
+            <div className="space-y-5 py-4">
+
+              {/* Member */}
+
+              <div>
+
+                <p className="text-sm font-medium">
+                  Member
+                </p>
+
+                <p className="text-sm text-muted-foreground">
+                  {renewingMember.name}
+                </p>
+
+              </div>
+
+              {/* Entry Date */}
+
+              <div className="space-y-2">
+
+                <Label htmlFor="renew-start-date">
+                  Entry Date
+                </Label>
+
+                <Input
+                  id="renew-start-date"
+                  type="date"
+                  value={
+                    renewStartDate
+                  }
+                  onChange={(e) =>
+                    setRenewStartDate(
+                      e.target.value
+                    )
+                  }
+                />
+
+              </div>
+
+              {/* Membership Plan */}
+
+              <div className="space-y-2">
+
+                <Label>
+                  Membership Plan
+                </Label>
+
+                <Select
+                  value={
+                    renewPlan
+                  }
+                  onValueChange={
+                    setRenewPlan
+                  }
+                >
+
+                  <SelectTrigger>
+
+                    <SelectValue placeholder="Select plan" />
+
+                  </SelectTrigger>
+
+                  <SelectContent>
+
+                    {plans.map(
+                      (plan) => (
+
+                        <SelectItem
+                          key={
+                            plan._id
+                          }
+                          value={
+                            plan.name
+                          }
+                        >
+                          {plan.name}
+                        </SelectItem>
+
+                      )
+                    )}
+
+                  </SelectContent>
+
+                </Select>
+
+              </div>
+
+              {/* Buttons */}
+
+              <div className="flex justify-end gap-2 pt-2">
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={
+                    savingRenewal
+                  }
+                  onClick={
+                    closeRenewDialog
+                  }
+                >
+                  Cancel
+                </Button>
+
+                <Button
+                  type="button"
+                  disabled={
+                    savingRenewal
+                  }
+                  onClick={
+                    handleRenewMembership
+                  }
+                >
+
+                  {savingRenewal
+                    ? "Renewing..."
+                    : "Renew Membership"}
+
+                </Button>
+
+              </div>
+
+            </div>
+
+          )}
+
+        </DialogContent>
+
+      </Dialog>
+
     </>
   );
 }
