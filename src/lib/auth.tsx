@@ -1,18 +1,36 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
+
 import type { AuthUser, Role } from "./types";
 
 const STORAGE_KEY = "smartgym.auth";
+const TOKEN_KEY = "smartgym.token";
 
 interface AuthContextValue {
   user: AuthUser | null;
   ready: boolean;
-  signIn: (email: string, password: string, role: Role) => Promise<AuthUser>;
+  signIn: (
+    email: string,
+    password: string,
+    role: Role
+  ) => Promise<AuthUser>;
   signOut: () => void;
 }
 
-const AuthContext = createContext<AuthContextValue | null>(null);
+const AuthContext =
+  createContext<AuthContextValue | null>(null);
 
-const normalizeRole = (role?: string): Role => (role?.toUpperCase() === "ADMIN" ? "ADMIN" : "MEMBER");
+const normalizeRole = (role?: string): Role =>
+  role?.toUpperCase() === "ADMIN"
+    ? "ADMIN"
+    : "MEMBER";
 
 const demoUsers: Record<Role, AuthUser> = {
   ADMIN: {
@@ -22,6 +40,7 @@ const demoUsers: Record<Role, AuthUser> = {
     role: "ADMIN",
     avatarInitials: "RD",
   },
+
   MEMBER: {
     id: "M-1000",
     name: "Rahul Sharma",
@@ -33,84 +52,188 @@ const demoUsers: Record<Role, AuthUser> = {
 
 const parseStoredUser = () => {
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
+    const raw =
+      window.localStorage.getItem(STORAGE_KEY);
 
-    const parsed = JSON.parse(raw) as Partial<AuthUser>;
-    if (!parsed || !parsed.email) return null;
+    if (!raw) {
+      return null;
+    }
+
+    const parsed =
+      JSON.parse(raw) as Partial<AuthUser>;
+
+    if (!parsed || !parsed.email) {
+      return null;
+    }
 
     return {
       ...parsed,
       role: normalizeRole(parsed.role),
-      avatarInitials: parsed.avatarInitials ?? (parsed.name ?? "U").slice(0, 2).toUpperCase(),
+      avatarInitials:
+        parsed.avatarInitials ??
+        (parsed.name ?? "U")
+          .slice(0, 2)
+          .toUpperCase(),
     } as AuthUser;
   } catch {
     return null;
   }
 };
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [ready, setReady] = useState(false);
+export function AuthProvider({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  const [user, setUser] =
+    useState<AuthUser | null>(null);
+
+  const [ready, setReady] =
+    useState(false);
 
   useEffect(() => {
     setUser(parseStoredUser());
     setReady(true);
   }, []);
 
-  const signIn = useCallback(async (email: string, password: string, role: Role) => {
-    const normalizedEmail = email.trim().toLowerCase();
-    const demoUser = demoUsers[role];
+  const signIn = useCallback(
+    async (
+      email: string,
+      password: string,
+      role: Role
+    ) => {
+      const normalizedEmail =
+        email.trim().toLowerCase();
 
-    if (normalizedEmail === demoUser.email.toLowerCase() && password === "demo1234") {
-      window.localStorage.setItem("smartgym.token", `${role.toLowerCase()}-demo-token`);
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(demoUser));
-      setUser(demoUser);
-      return demoUser;
-    }
+      const demoUser = demoUsers[role];
 
-    const response = await fetch("http://192.168.37.238:5000/api/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email,
-        password,
-      }),
-    });
+      /*
+       * Demo credentials are still accepted by the UI,
+       * but authentication is now handled by the backend.
+       *
+       * This means the backend creates the real JWT.
+       */
 
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.message || "Login failed");
-    }
+      const response = await fetch(
+        "http://192.168.37.238:5000/api/auth/login",
+        {
+          method: "POST",
 
-    const next: AuthUser = {
-      id: String(data.user?.id ?? data.user?._id ?? crypto.randomUUID()),
-      name: data.user?.name ?? "Gym User",
-      email: data.user?.email ?? normalizedEmail,
-      role: normalizeRole(data.user?.role),
-      avatarInitials: data.user?.avatarInitials ?? (data.user?.name ?? "GU").slice(0, 2).toUpperCase(),
-    };
+          headers: {
+            "Content-Type": "application/json",
+          },
 
-    window.localStorage.setItem("smartgym.token", data.token ?? `${next.role.toLowerCase()}-token`);
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-    setUser(next);
-    return next;
-  }, []);
+          body: JSON.stringify({
+            email: normalizedEmail,
+            password,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message || "Login failed"
+        );
+      }
+
+      const next: AuthUser = {
+        id: String(
+          data.user?.id ??
+            data.user?._id ??
+            crypto.randomUUID()
+        ),
+
+        name:
+          data.user?.name ??
+          demoUser.name ??
+          "Gym User",
+
+        email:
+          data.user?.email ??
+          normalizedEmail,
+
+        role: normalizeRole(
+          data.user?.role
+        ),
+
+        avatarInitials:
+          data.user?.avatarInitials ??
+          (
+            data.user?.name ??
+            demoUser.name ??
+            "GU"
+          )
+            .slice(0, 2)
+            .toUpperCase(),
+      };
+
+      /*
+       * Store the REAL JWT returned by the backend.
+       */
+      window.localStorage.setItem(
+        TOKEN_KEY,
+        data.token
+      );
+
+      /*
+       * Store the logged-in user information.
+       */
+      window.localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify(next)
+      );
+
+      setUser(next);
+
+      return next;
+    },
+    []
+  );
 
   const signOut = useCallback(() => {
-  window.localStorage.removeItem(STORAGE_KEY);
-  window.localStorage.removeItem("smartgym.token");
-  setUser(null);
-}, []);
+    window.localStorage.removeItem(
+      STORAGE_KEY
+    );
 
-  const value = useMemo(() => ({ user, ready, signIn, signOut }), [user, ready, signIn, signOut]);
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+    window.localStorage.removeItem(
+      TOKEN_KEY
+    );
+
+    setUser(null);
+  }, []);
+
+  const value = useMemo(
+    () => ({
+      user,
+      ready,
+      signIn,
+      signOut,
+    }),
+    [
+      user,
+      ready,
+      signIn,
+      signOut,
+    ]
+  );
+
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
+
+  if (!ctx) {
+    throw new Error(
+      "useAuth must be used inside AuthProvider"
+    );
+  }
+
   return ctx;
 }

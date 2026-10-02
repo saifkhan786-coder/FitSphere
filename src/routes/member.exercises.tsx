@@ -1,103 +1,284 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Dumbbell, Search } from "lucide-react";
-import { useMemo, useState } from "react";
-import { EmptyState, PageHeader, StatusBadge } from "@/components/common/ui-kit";
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
+
+import {
+  EmptyState,
+  PageHeader,
+  StatusBadge,
+} from "@/components/common/ui-kit";
+
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { exerciseCategories, exercises } from "@/lib/mock-data";
-import type { Exercise } from "@/lib/types";
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export const Route = createFileRoute("/member/exercises")({
   head: () => ({
     meta: [
-      { title: "Exercise Library — Smart Gym" },
-      { name: "description", content: "Browse exercises by muscle group with sets, reps, equipment and step-by-step form cues." },
-      { property: "og:title", content: "Exercise Library — Smart Gym" },
-      { property: "og:description", content: "Exercises by muscle group with form instructions." },
+      {
+        title: "Exercise Library — Smart Gym",
+      },
+      {
+        name: "description",
+        content:
+          "Browse exercises by muscle group with difficulty and step-by-step instructions.",
+      },
+      {
+        property: "og:title",
+        content: "Exercise Library — Smart Gym",
+      },
+      {
+        property: "og:description",
+        content: "Exercises by muscle group with form instructions.",
+      },
     ],
   }),
   component: MemberExercises,
 });
 
+type Exercise = {
+  _id: string;
+  name: string;
+  category: string;
+  difficulty: string;
+  instructions: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 function MemberExercises() {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
   const [difficulty, setDifficulty] = useState("all");
-  const [selected, setSelected] = useState<Exercise | null>(null);
 
-  const filtered = useMemo(
-    () =>
-      exercises.filter(
-        (e) =>
-          (category === "all" || e.category === category) &&
-          (difficulty === "all" || e.difficulty === difficulty) &&
-          e.name.toLowerCase().includes(query.toLowerCase().trim()),
-      ),
-    [query, category, difficulty],
-  );
+  const [selected, setSelected] =
+    useState<Exercise | null>(null);
+
+  const [exercises, setExercises] =
+    useState<Exercise[]>([]);
+
+  const [loading, setLoading] = useState(true);
+
+  /*
+   * Fetch exercises from backend
+   */
+  const fetchExercises = async () => {
+    try {
+      setLoading(true);
+
+      const response = await fetch(
+        "http://192.168.37.238:5000/api/exercises"
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(
+          data.message || "Failed to fetch exercises"
+        );
+      }
+
+      setExercises(data.exercises);
+    } catch (error) {
+      console.error(error);
+
+      toast.error("Failed to load exercises");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /*
+   * Load exercises when page opens
+   */
+  useEffect(() => {
+    fetchExercises();
+  }, []);
+
+  /*
+   * Create category list from backend exercises
+   */
+  const exerciseCategories = useMemo(() => {
+    return Array.from(
+      new Set(
+        exercises.map(
+          (exercise) => exercise.category
+        )
+      )
+    );
+  }, [exercises]);
+
+  /*
+   * Filter exercises
+   */
+  const filtered = useMemo(() => {
+    return exercises.filter(
+      (exercise) =>
+        (category === "all" ||
+          exercise.category === category) &&
+        (difficulty === "all" ||
+          exercise.difficulty === difficulty) &&
+        exercise.name
+          .toLowerCase()
+          .includes(query.toLowerCase().trim())
+    );
+  }, [
+    exercises,
+    query,
+    category,
+    difficulty,
+  ]);
 
   return (
     <>
-      <PageHeader title="Exercise library" description="Pick an exercise to see step-by-step form cues" />
+      <PageHeader
+        title="Exercise library"
+        description="Pick an exercise to see step-by-step form cues"
+      />
 
+      {/* Search and filters */}
       <div className="mb-5 flex flex-wrap gap-3">
         <div className="relative min-w-56 flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search exercises" className="pl-9" />
+
+          <Input
+            value={query}
+            onChange={(e) =>
+              setQuery(e.target.value)
+            }
+            placeholder="Search exercises"
+            className="pl-9"
+          />
         </div>
-        <Select value={category} onValueChange={setCategory}>
+
+        {/* Category filter */}
+        <Select
+          value={category}
+          onValueChange={setCategory}
+        >
           <SelectTrigger className="w-40">
             <SelectValue placeholder="Category" />
           </SelectTrigger>
+
           <SelectContent>
-            <SelectItem value="all">All muscles</SelectItem>
-            {exerciseCategories.map((c) => (
-              <SelectItem key={c} value={c}>
-                {c}
-              </SelectItem>
-            ))}
+            <SelectItem value="all">
+              All muscles
+            </SelectItem>
+
+            {exerciseCategories.map(
+              (exerciseCategory) => (
+                <SelectItem
+                  key={exerciseCategory}
+                  value={exerciseCategory}
+                >
+                  {exerciseCategory}
+                </SelectItem>
+              )
+            )}
           </SelectContent>
         </Select>
-        <Select value={difficulty} onValueChange={setDifficulty}>
+
+        {/* Difficulty filter */}
+        <Select
+          value={difficulty}
+          onValueChange={setDifficulty}
+        >
           <SelectTrigger className="w-40">
             <SelectValue placeholder="Difficulty" />
           </SelectTrigger>
+
           <SelectContent>
-            <SelectItem value="all">All levels</SelectItem>
-            <SelectItem value="Beginner">Beginner</SelectItem>
-            <SelectItem value="Intermediate">Intermediate</SelectItem>
-            <SelectItem value="Advanced">Advanced</SelectItem>
+            <SelectItem value="all">
+              All levels
+            </SelectItem>
+
+            <SelectItem value="Beginner">
+              Beginner
+            </SelectItem>
+
+            <SelectItem value="Intermediate">
+              Intermediate
+            </SelectItem>
+
+            <SelectItem value="Advanced">
+              Advanced
+            </SelectItem>
           </SelectContent>
         </Select>
       </div>
 
-      {filtered.length === 0 ? (
-        <EmptyState icon={Dumbbell} title="No exercises found" description="Adjust your filters and try again." />
+      {/* Loading */}
+      {loading ? (
+        <div className="py-10 text-center text-muted-foreground">
+          Loading exercises...
+        </div>
+      ) : filtered.length === 0 ? (
+        <EmptyState
+          icon={Dumbbell}
+          title="No exercises found"
+          description="Adjust your filters and try again."
+        />
       ) : (
+        /*
+         * Exercise cards
+         */
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {filtered.map((e) => (
-            <button key={e.id} onClick={() => setSelected(e)} className="text-left">
+          {filtered.map((exercise) => (
+            <button
+              key={exercise._id}
+              onClick={() =>
+                setSelected(exercise)
+              }
+              className="text-left"
+            >
               <Card className="h-full transition-shadow hover:shadow-[var(--shadow-lift)]">
                 <CardContent className="p-5">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="font-display text-base font-semibold">{e.name}</p>
+                      <p className="font-display text-base font-semibold">
+                        {exercise.name}
+                      </p>
+
                       <p className="mt-0.5 text-xs text-muted-foreground">
-                        {e.target} · {e.equipment}
+                        {exercise.category}
                       </p>
                     </div>
-                    <StatusBadge status={e.difficulty} />
+
+                    <StatusBadge
+                      status={exercise.difficulty}
+                    />
                   </div>
+
                   <div className="mt-4 flex flex-wrap gap-2 text-xs">
-                    <Badge variant="secondary">{e.category}</Badge>
                     <Badge variant="secondary">
-                      {e.sets} × {e.reps}
+                      {exercise.category}
                     </Badge>
-                    <Badge variant="secondary">{e.rest}s rest</Badge>
+
+                    <Badge variant="secondary">
+                      {exercise.difficulty}
+                    </Badge>
                   </div>
+
+                  <p className="mt-4 text-sm text-muted-foreground line-clamp-3">
+                    {exercise.instructions}
+                  </p>
                 </CardContent>
               </Card>
             </button>
@@ -105,43 +286,63 @@ function MemberExercises() {
         </div>
       )}
 
-      <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
+      {/* Exercise details dialog */}
+      <Dialog
+        open={!!selected}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelected(null);
+          }
+        }}
+      >
         <DialogContent>
           {selected && (
             <>
               <DialogHeader>
-                <DialogTitle>{selected.name}</DialogTitle>
+                <DialogTitle>
+                  {selected.name}
+                </DialogTitle>
               </DialogHeader>
+
               <div className="space-y-4">
+                {/* Exercise information */}
                 <div className="flex flex-wrap gap-2 text-xs">
-                  <Badge variant="secondary">{selected.category}</Badge>
-                  <Badge variant="secondary">{selected.target}</Badge>
-                  <Badge variant="secondary">{selected.equipment}</Badge>
-                  <StatusBadge status={selected.difficulty} />
+                  <Badge variant="secondary">
+                    {selected.category}
+                  </Badge>
+
+                  <StatusBadge
+                    status={selected.difficulty}
+                  />
                 </div>
-                <div className="grid grid-cols-3 gap-3 text-center">
-                  <div className="rounded-lg bg-secondary py-3">
-                    <p className="font-display text-lg font-semibold">{selected.sets}</p>
-                    <p className="text-xs text-muted-foreground">Sets</p>
-                  </div>
-                  <div className="rounded-lg bg-secondary py-3">
-                    <p className="font-display text-lg font-semibold">{selected.reps}</p>
-                    <p className="text-xs text-muted-foreground">Reps</p>
-                  </div>
-                  <div className="rounded-lg bg-secondary py-3">
-                    <p className="font-display text-lg font-semibold">{selected.rest}s</p>
-                    <p className="text-xs text-muted-foreground">Rest</p>
-                  </div>
-                </div>
+
+                {/* Instructions */}
                 <div>
-                  <p className="mb-2 text-sm font-medium">How to perform</p>
+                  <p className="mb-2 text-sm font-medium">
+                    How to perform
+                  </p>
+
                   <ol className="space-y-2 text-sm text-muted-foreground">
-                    {selected.instructions.map((s, i) => (
-                      <li key={i} className="flex gap-2">
-                        <span className="font-medium text-foreground">{i + 1}.</span>
-                        {s}
-                      </li>
-                    ))}
+                    {selected.instructions
+                      .split("\n")
+                      .filter(
+                        (step) =>
+                          step.trim() !== ""
+                      )
+                      .map((step, index) => (
+                        <li
+                          key={index}
+                          className="flex gap-2"
+                        >
+                          <span className="font-medium text-foreground">
+                            {index + 1}.
+                          </span>
+
+                          <span>
+                            {step.trim()}
+                          </span>
+                        </li>
+                      ))}
                   </ol>
                 </div>
               </div>
