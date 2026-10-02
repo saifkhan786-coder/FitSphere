@@ -1,3 +1,4 @@
+import { QRCodeCanvas } from "qrcode.react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   CalendarDays,
@@ -272,6 +273,7 @@ function AttendancePage() {
       </div>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-3">
+
         {/* QR CHECK-IN */}
         <Card>
           <CardHeader>
@@ -281,8 +283,15 @@ function AttendancePage() {
           </CardHeader>
 
           <CardContent className="space-y-4">
+
+            {/* REAL QR CODE */}
             <div className="flex aspect-square items-center justify-center rounded-xl bg-secondary">
-              <QrCode className="size-32 text-foreground/80" />
+              <div className="rounded-xl bg-white p-4">
+               <QRCodeCanvas
+    value="http://192.168.37.238:8080/member/attendance?qr=1"
+    size={200}
+/>
+              </div>
             </div>
 
             <p className="text-sm text-muted-foreground">

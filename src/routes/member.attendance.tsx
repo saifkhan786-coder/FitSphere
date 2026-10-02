@@ -52,6 +52,13 @@ export const Route = createFileRoute("/member/attendance")({
 });
 
 function MemberAttendance() {
+  const searchParams = new URLSearchParams(
+    window.location.search,
+  );
+
+  const qrCheckIn =
+    searchParams.get("qr") === "1";
+
   const [checked, setChecked] = useState(false);
 
   const [memberId, setMemberId] = useState<string | null>(
@@ -82,7 +89,7 @@ function MemberAttendance() {
         }
 
         const response = await fetch(
-          "http://localhost:5000/api/auth/profile",
+          "http://192.168.37.238:5000/api/auth/profile",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -122,6 +129,71 @@ function MemberAttendance() {
   }, []);
 
   /*
+   * QR check-in
+   */
+  useEffect(() => {
+    if (!qrCheckIn) {
+      return;
+    }
+
+    const checkInWithQR = async () => {
+      try {
+        const token =
+          localStorage.getItem("smartgym.token");
+
+        if (!token) {
+          toast.error("Please login again");
+          return;
+        }
+
+        setCheckingIn(true);
+
+        const response = await fetch(
+          "http://192.168.37.238:5000/api/attendance/qr-checkin",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.message ||
+              "Failed to check in with QR",
+          );
+        }
+
+        setChecked(true);
+
+        setAttendance((prev) => [
+          data.attendance,
+          ...prev,
+        ]);
+
+        toast.success(
+          "QR check-in successful!",
+        );
+      } catch (error) {
+        console.error(error);
+
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "Failed to check in with QR",
+        );
+      } finally {
+        setCheckingIn(false);
+      }
+    };
+
+    checkInWithQR();
+  }, [qrCheckIn]);
+
+  /*
    * Fetch member attendance
    */
   useEffect(() => {
@@ -138,7 +210,7 @@ function MemberAttendance() {
         setLoadingAttendance(true);
 
         const response = await fetch(
-          "http://localhost:5000/api/attendance/my",
+          "http://192.168.37.238:5000/api/attendance/my",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -173,7 +245,7 @@ function MemberAttendance() {
   }, []);
 
   /*
-   * Check in member
+   * Check in member manually
    */
   const handleCheckIn = async () => {
     try {
@@ -195,7 +267,7 @@ function MemberAttendance() {
       setCheckingIn(true);
 
       const response = await fetch(
-        "http://localhost:5000/api/attendance/checkin",
+        "http://192.168.37.238:5000/api/attendance/checkin",
         {
           method: "POST",
           headers: {
