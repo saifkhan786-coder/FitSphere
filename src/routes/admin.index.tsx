@@ -183,28 +183,28 @@ function AdminDashboard() {
         attendanceResponse,
       ] = await Promise.all([
         fetch(
-          "http://localhost:5000/api/auth/admin/members",
+          "/api/auth/admin/members",
           {
             headers,
           }
         ),
 
         fetch(
-          "http://localhost:5000/api/payments",
+          "/api/payments",
           {
             headers,
           }
         ),
 
         fetch(
-          "http://localhost:5000/api/plans",
+          "/api/plans",
           {
             headers,
           }
         ),
 
         fetch(
-          "http://localhost:5000/api/attendance/weekly",
+          "/api/attendance/weekly",
           {
             headers,
           }

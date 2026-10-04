@@ -85,7 +85,7 @@ function MembersPage() {
   useEffect(() => {
     const token = localStorage.getItem("smartgym.token");
 
-    fetch("http://localhost:5000/api/auth/admin/members", {
+    fetch("/api/auth/admin/members", {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -645,7 +645,7 @@ function MembersPage() {
 
                     const response =
                       await fetch(
-                        `http://localhost:5000/api/auth/admin/members/${editingMember?.id}/membership`,
+                        `/api/auth/admin/members/${editingMember?.id}/membership`,
                         {
                           method: "PUT",
                           headers: {

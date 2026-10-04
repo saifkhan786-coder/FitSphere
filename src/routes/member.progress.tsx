@@ -78,10 +78,10 @@ export const Route = createFileRoute(
 });
 
 const PROGRESS_API_URL =
-  "http://192.168.37.238:5000/api/progress";
+  "/api/progress";
 
 const PROFILE_API_URL =
-  "http://192.168.37.238:5000/api/auth/profile";
+  "/api/auth/profile";
 
 const TOKEN_KEY =
   "smartgym.token";

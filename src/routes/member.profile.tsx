@@ -50,7 +50,7 @@ function ProfilePage() {
   useEffect(() => {
     const token = localStorage.getItem("smartgym.token");
 
-    fetch("http://localhost:5000/api/auth/profile", {
+    fetch("/api/auth/profile", {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -164,7 +164,7 @@ function ProfilePage() {
                     localStorage.getItem("smartgym.token");
 
                   const response = await fetch(
-                    "http://localhost:5000/api/auth/profile",
+                    "/api/auth/profile",
                     {
                       method: "PUT",
                       headers: {
@@ -339,7 +339,7 @@ function ProfilePage() {
                     localStorage.getItem("smartgym.token");
 
                   const response = await fetch(
-                    "http://localhost:5000/api/auth/change-password",
+                    "/api/auth/change-password",
                     {
                       method: "PUT",
                       headers: {

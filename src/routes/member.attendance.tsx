@@ -89,7 +89,7 @@ function MemberAttendance() {
         }
 
         const response = await fetch(
-          "http://192.168.37.238:5000/api/auth/profile",
+          "/api/auth/profile",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -149,7 +149,7 @@ function MemberAttendance() {
         setCheckingIn(true);
 
         const response = await fetch(
-          "http://192.168.37.238:5000/api/attendance/qr-checkin",
+          "/api/attendance/qr-checkin",
           {
             method: "POST",
             headers: {
@@ -210,7 +210,7 @@ function MemberAttendance() {
         setLoadingAttendance(true);
 
         const response = await fetch(
-          "http://192.168.37.238:5000/api/attendance/my",
+          "/api/attendance/my",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -267,7 +267,7 @@ function MemberAttendance() {
       setCheckingIn(true);
 
       const response = await fetch(
-        "http://192.168.37.238:5000/api/attendance/checkin",
+        "/api/attendance/checkin",
         {
           method: "POST",
           headers: {

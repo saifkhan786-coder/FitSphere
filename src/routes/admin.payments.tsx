@@ -202,7 +202,7 @@ function PaymentsPage() {
 
       const response =
         await fetch(
-          "http://localhost:5000/api/auth/admin/members",
+          "/api/auth/admin/members",
           {
             headers: {
               Authorization:
@@ -304,7 +304,7 @@ function PaymentsPage() {
 
       const response =
         await fetch(
-          "http://localhost:5000/api/payments",
+          "/api/payments",
           {
             headers: {
               Authorization:
@@ -644,7 +644,7 @@ function PaymentsPage() {
 
         const response =
           await fetch(
-            "http://localhost:5000/api/payments",
+            "/api/payments",
             {
               method: "POST",
 
@@ -770,7 +770,7 @@ function PaymentsPage() {
 
         const response =
           await fetch(
-            `http://localhost:5000/api/payments/${paymentId}/paid`,
+            `/api/payments/${paymentId}/paid`,
             {
               method: "PUT",
 

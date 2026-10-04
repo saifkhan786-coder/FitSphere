@@ -248,7 +248,7 @@ function RegisterPage() {
 
       const response =
         await fetch(
-          "http://localhost:5000/api/auth/admin/create-member",
+          "/api/auth/admin/create-member",
           {
             method: "POST",
 
