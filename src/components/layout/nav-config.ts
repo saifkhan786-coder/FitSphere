@@ -47,7 +47,7 @@ export const memberNav: NavItem[] = [
   { label: "Progress", to: "/member/progress", icon: LineChart },
   { label: "Attendance", to: "/member/attendance", icon: QrCode },
   { label: "Membership", to: "/member/membership", icon: IdCard },
-  { label: "Achievements", to: "/member/achievements", icon: Trophy },
+  // { label: "Achievements", to: "/member/achievements", icon: Trophy },
   { label: "AI Coach", to: "/member/coach", icon: Bot },
   { label: "Profile", to: "/member/profile", icon: User },
 ];

@@ -38,57 +38,58 @@ const memberSchema = new mongoose.Schema({
     },
 
     // Fitness profile
-    height: {
-        type: Number
-    },
+    // Fitness profile
+height: {
+    type: Number
+},
 
-    weight: {
-        type: Number
-    },
+weight: {
+    type: Number
+},
 
-    primaryGoal: {
-        type: String
-    },
+startingWeight: {
+    type: Number
+},
 
-    experienceLevel: {
-        type: String
-    },
+primaryGoal: {
+    type: String
+},
 
-    trainingDaysPerWeek: {
-        type: Number
-    },
+experienceLevel: {
+    type: String
+},
 
-    medicalNotes: {
-        type: String
-    },
+trainingDaysPerWeek: {
+    type: Number
+},
 
-    // Membership
-    membershipPlan: {
-        type: String,
-        required: true
-    },
+medicalNotes: {
+    type: String
+},
 
-    membershipStartDate: {
-        type: Date,
-        required: true
-    },
+// Membership
+membershipPlan: {
+    type: String,
+    required: true
+},
 
-    membershipExpiryDate: {
+membershipStartDate: {
     type: Date,
     required: true
-    },
+},
 
-    membershipExpiryDate: {
-    type: Date
-    },
+membershipExpiryDate: {
+    type: Date,
+    required: true
+},
 
-    paymentMethod: {
-        type: String
-    },
+paymentMethod: {
+    type: String
+},
 
-    amountPaid: {
-        type: Number
-    }
+amountPaid: {
+    type: Number
+}
 
 });
 

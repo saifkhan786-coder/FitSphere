@@ -1,12 +1,13 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
   Apple,
   CalendarCheck,
   Dumbbell,
-  Flame,
-  Trophy,
+  Pencil,
+  Save,
+  X,
 } from "lucide-react";
 
 import {
@@ -25,14 +26,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-import { Progress } from "@/components/ui/progress";
-
-import {
-  achievements,
-  nutritionTargets,
-  todaysWorkout,
-  weeklySplit,
-} from "@/lib/mock-data";
+import { nutritionTargets } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/member/")({
   head: () => ({
@@ -43,7 +37,7 @@ export const Route = createFileRoute("/member/")({
       {
         name: "description",
         content:
-          "Today's workout, calories, macros, progress and membership status at a glance.",
+          "Your workout, progress and membership dashboard.",
       },
       {
         property: "og:title",
@@ -52,7 +46,7 @@ export const Route = createFileRoute("/member/")({
       {
         property: "og:description",
         content:
-          "Your workout, nutrition and progress snapshot.",
+          "Your workout, progress and membership dashboard.",
       },
     ],
   }),
@@ -60,176 +54,208 @@ export const Route = createFileRoute("/member/")({
   component: MemberHome,
 });
 
-/* -------------------------------------------------------------------------- */
-/* Workout History                                                            */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================= */
+/* API                                                                       */
+/* ========================================================================= */
 
-const workoutHistory = [
+const PROFILE_API_URL =
+  "http://192.168.37.238:5000/api/auth/profile";
+
+const PROGRESS_API_URL =
+  "http://192.168.37.238:5000/api/progress";
+
+const WORKOUT_API_URL =
+  "http://192.168.37.238:5000/api/workouts";
+
+const TOKEN_KEY = "smartgym.token";
+
+/* ========================================================================= */
+/* Types                                                                     */
+/* ========================================================================= */
+
+type MemberProfile = {
+  id: string;
+
+  membershipPlan: string;
+
+  membershipStartDate: string;
+
+  membershipExpiryDate: string;
+
+  paymentMethod?: string;
+
+  amountPaid?: number;
+
+  phone?: string;
+
+  gender?: string;
+
+  address?: string;
+
+  height?: number;
+
+  weight?: number;
+
+  /*
+   * Original weight when the member
+   * was registered.
+   */
+  startingWeight?: number;
+
+  primaryGoal?: string;
+
+  experienceLevel?: string;
+};
+
+type ProfileResponse = {
+  success: boolean;
+
+  user: {
+    id: string;
+
+    name: string;
+
+    email: string;
+
+    role: string;
+
+    member: MemberProfile | null;
+  };
+};
+
+type ProgressRecord = {
+  _id: string;
+
+  userId: string;
+
+  date: string;
+
+  weight: number;
+
+  chest?: number;
+
+  waist?: number;
+
+  arms?: number;
+
+  thighs?: number;
+
+  createdAt?: string;
+};
+
+type ProgressResponse = {
+  success: boolean;
+
+  progress: ProgressRecord[];
+};
+
+type WorkoutSet = {
+  id: string;
+
+  reps: number;
+
+  weight: number;
+
+  completed: boolean;
+};
+
+type WorkoutExercise = {
+  exerciseId: string;
+
+  name: string;
+
+  category: string;
+
+  rest: number;
+
+  sets: WorkoutSet[];
+};
+
+type Workout = {
+  _id: string;
+
+  userId: string;
+
+  date: string;
+
+  exercises: WorkoutExercise[];
+
+  createdAt?: string;
+
+  updatedAt?: string;
+};
+
+type WorkoutResponse = {
+  success: boolean;
+
+  workouts: Workout[];
+};
+
+type WeeklySplit = {
+  day: string;
+
+  focus: string;
+};
+
+/* ========================================================================= */
+/* Default weekly split                                                      */
+/* ========================================================================= */
+
+const DEFAULT_WEEKLY_SPLIT: WeeklySplit[] = [
   {
-    id: 1,
     day: "Monday",
-    date: "29 Sep 2026",
-    dateKey: "2026-09-29",
-    title: "Chest + Triceps",
-    duration: 45,
-
-    exercises: [
-      {
-        name: "Bench Press",
-        sets: 4,
-        reps: 10,
-        weight: "40 kg",
-      },
-      {
-        name: "Incline Dumbbell Press",
-        sets: 3,
-        reps: 10,
-        weight: "16 kg",
-      },
-      {
-        name: "Cable Fly",
-        sets: 3,
-        reps: 12,
-        weight: "12 kg",
-      },
-      {
-        name: "Push-ups",
-        sets: 3,
-        reps: 15,
-        weight: "Bodyweight",
-      },
-    ],
+    focus: "Chest + Triceps",
   },
 
   {
-    id: 2,
-    day: "Saturday",
-    date: "27 Sep 2026",
-    dateKey: "2026-09-27",
-    title: "Back + Biceps",
-    duration: 50,
-
-    exercises: [
-      {
-        name: "Lat Pulldown",
-        sets: 4,
-        reps: 10,
-        weight: "45 kg",
-      },
-      {
-        name: "Barbell Row",
-        sets: 3,
-        reps: 10,
-        weight: "40 kg",
-      },
-      {
-        name: "Seated Cable Row",
-        sets: 3,
-        reps: 12,
-        weight: "35 kg",
-      },
-      {
-        name: "Dumbbell Curl",
-        sets: 3,
-        reps: 12,
-        weight: "10 kg",
-      },
-    ],
+    day: "Tuesday",
+    focus: "Back + Biceps",
   },
 
   {
-    id: 3,
-    day: "Friday",
-    date: "26 Sep 2026",
-    dateKey: "2026-09-26",
-    title: "Legs",
-    duration: 55,
-
-    exercises: [
-      {
-        name: "Barbell Squat",
-        sets: 4,
-        reps: 10,
-        weight: "60 kg",
-      },
-      {
-        name: "Leg Press",
-        sets: 3,
-        reps: 12,
-        weight: "100 kg",
-      },
-      {
-        name: "Leg Extension",
-        sets: 3,
-        reps: 12,
-        weight: "40 kg",
-      },
-      {
-        name: "Leg Curl",
-        sets: 3,
-        reps: 12,
-        weight: "35 kg",
-      },
-      {
-        name: "Calf Raise",
-        sets: 3,
-        reps: 15,
-        weight: "30 kg",
-      },
-    ],
+    day: "Wednesday",
+    focus: "Legs",
   },
 
   {
-    id: 4,
     day: "Thursday",
-    date: "25 Sep 2026",
-    dateKey: "2026-09-25",
-    title: "Shoulders + Abs",
-    duration: 45,
+    focus: "Shoulders + Abs",
+  },
 
-    exercises: [
-      {
-        name: "Shoulder Press",
-        sets: 4,
-        reps: 10,
-        weight: "20 kg",
-      },
-      {
-        name: "Lateral Raise",
-        sets: 3,
-        reps: 12,
-        weight: "8 kg",
-      },
-      {
-        name: "Front Raise",
-        sets: 3,
-        reps: 12,
-        weight: "8 kg",
-      },
-      {
-        name: "Plank",
-        sets: 3,
-        reps: 60,
-        weight: "Bodyweight",
-      },
-    ],
+  {
+    day: "Friday",
+    focus: "Full Body Strength",
+  },
+
+  {
+    day: "Saturday",
+    focus: "Cardio + Core",
+  },
+
+  {
+    day: "Sunday",
+    focus: "Rest & Recovery",
   },
 ];
 
-/* -------------------------------------------------------------------------- */
-/* Helper                                                                     */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================= */
+/* Helper functions                                                          */
+/* ========================================================================= */
 
-function formatSelectedDate(dateString: string) {
+function formatDate(dateString: string) {
   if (!dateString) {
-    return "Select date";
+    return "—";
   }
 
- const parts = dateString.split("-");
+  const parts = dateString.split("-");
 
-const year = Number(parts[0]);
-const month = Number(parts[1]);
-const day = Number(parts[2]);
+  if (parts.length !== 3) {
+    return "—";
+  }
+
+  const year = Number(parts[0]);
+  const month = Number(parts[1]);
+  const day = Number(parts[2]);
 
   const date = new Date(
     year,
@@ -237,36 +263,134 @@ const day = Number(parts[2]);
     day
   );
 
-  return date.toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+  if (Number.isNaN(date.getTime())) {
+    return "—";
+  }
+
+  return date.toLocaleDateString(
+    "en-GB",
+    {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    }
+  );
 }
 
-/* -------------------------------------------------------------------------- */
-/* Workout Card                                                               */
-/* -------------------------------------------------------------------------- */
+function getDayName(dateString: string) {
+  const parts = dateString.split("-");
+
+  if (parts.length !== 3) {
+    return "";
+  }
+
+  const year = Number(parts[0]);
+  const month = Number(parts[1]);
+  const day = Number(parts[2]);
+
+  const date = new Date(
+    year,
+    month - 1,
+    day
+  );
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return date.toLocaleDateString(
+    "en-US",
+    {
+      weekday: "long",
+    }
+  );
+}
+
+function getMembershipDaysRemaining(
+  expiryDateString?: string
+) {
+  if (!expiryDateString) {
+    return 0;
+  }
+
+  const today = new Date();
+
+  const expiry = new Date(
+    expiryDateString
+  );
+
+  if (Number.isNaN(expiry.getTime())) {
+    return 0;
+  }
+
+  const todayStart = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate()
+  );
+
+  const expiryStart = new Date(
+    expiry.getFullYear(),
+    expiry.getMonth(),
+    expiry.getDate()
+  );
+
+  const difference =
+    expiryStart.getTime() -
+    todayStart.getTime();
+
+  return Math.max(
+    0,
+    Math.ceil(
+      difference /
+        (1000 * 60 * 60 * 24)
+    )
+  );
+}
+
+function formatWeightChange(
+  change: number
+) {
+  const rounded = Number(
+    change.toFixed(1)
+  );
+
+  return rounded;
+}
+
+/* ========================================================================= */
+/* Workout History Card                                                      */
+/* ========================================================================= */
 
 function WorkoutHistoryCard({
   workout,
   expanded,
   onToggle,
 }: {
-  workout: (typeof workoutHistory)[number];
+  workout: Workout;
+
   expanded: boolean;
+
   onToggle: () => void;
 }) {
-  const totalSets = workout.exercises.reduce(
-    (total, exercise) =>
-      total + exercise.sets,
-    0
+  const totalSets =
+    workout.exercises.reduce(
+      (total, exercise) =>
+        total + exercise.sets.length,
+      0
+    );
+
+  const totalExercises =
+    workout.exercises.length;
+
+  const workoutDay = getDayName(
+    workout.date
   );
 
   return (
     <div className="overflow-hidden rounded-xl border">
 
-      {/* Workout row */}
+      {/* Workout header */}
 
       <button
         type="button"
@@ -275,11 +399,13 @@ function WorkoutHistoryCard({
       >
         <div>
           <p className="text-sm font-semibold">
-            {workout.day} · {workout.date}
+            {workoutDay} ·{" "}
+            {formatDate(workout.date)}
           </p>
 
           <p className="mt-1 text-xs text-muted-foreground">
-            {workout.title} · {workout.duration} min
+            {totalExercises} exercises ·{" "}
+            {totalSets} total sets
           </p>
         </div>
 
@@ -288,83 +414,146 @@ function WorkoutHistoryCard({
         </span>
       </button>
 
-      {/* Expanded details */}
+      {/* Expanded workout */}
 
       {expanded && (
         <div className="border-t px-4 py-4">
-
-          {/* Workout summary */}
 
           <div className="mb-4 flex items-center justify-between gap-4">
 
             <div>
               <p className="text-sm font-semibold">
-                {workout.title}
+                Workout details
               </p>
 
               <p className="mt-1 text-xs text-muted-foreground">
-                {workout.exercises.length} exercises ·{" "}
+                {totalExercises} exercises ·{" "}
                 {totalSets} total sets
               </p>
             </div>
 
             <Badge variant="secondary">
-              {workout.duration} min
+              {formatDate(workout.date)}
             </Badge>
 
           </div>
 
-          {/* Exercise list */}
-
           <div className="space-y-2">
 
             {workout.exercises.map(
-              (exercise) => (
-                <div
-                  key={exercise.name}
-                  className="flex items-center justify-between rounded-lg bg-secondary/50 px-3 py-3"
-                >
+              (exercise) => {
 
-                  <div className="flex min-w-0 items-center gap-3">
+                const completedSets =
+                  exercise.sets.filter(
+                    (set) =>
+                      set.completed
+                  ).length;
 
-                    <Dumbbell className="size-4 shrink-0 text-accent" />
+                const totalReps =
+                  exercise.sets.reduce(
+                    (total, set) =>
+                      total + set.reps,
+                    0
+                  );
 
-                    <span className="truncate text-sm font-medium">
-                      {exercise.name}
-                    </span>
+                const maxWeight =
+                  exercise.sets.reduce(
+                    (max, set) =>
+                      Math.max(
+                        max,
+                        set.weight
+                      ),
+                    0
+                  );
+
+                return (
+                  <div
+                    key={
+                      exercise.exerciseId
+                    }
+                    className="rounded-lg bg-secondary/50 px-3 py-3"
+                  >
+
+                    <div className="flex items-center justify-between gap-3">
+
+                      <div className="flex min-w-0 items-center gap-3">
+
+                        <Dumbbell className="size-4 shrink-0 text-accent" />
+
+                        <div className="min-w-0">
+
+                          <p className="truncate text-sm font-medium">
+                            {exercise.name}
+                          </p>
+
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            {exercise.category}
+                          </p>
+
+                        </div>
+
+                      </div>
+
+                      <div className="text-right">
+
+                        <p className="text-sm font-medium">
+                          {exercise.sets.length} sets
+                        </p>
+
+                        <p className="text-xs text-muted-foreground">
+                          {completedSets} completed
+                        </p>
+
+                      </div>
+
+                    </div>
+
+                    <div className="mt-3 grid grid-cols-3 gap-2 border-t pt-3 text-xs">
+
+                      <div>
+
+                        <p className="text-muted-foreground">
+                          Reps
+                        </p>
+
+                        <p className="mt-1 font-medium">
+                          {totalReps}
+                        </p>
+
+                      </div>
+
+                      <div>
+
+                        <p className="text-muted-foreground">
+                          Max weight
+                        </p>
+
+                        <p className="mt-1 font-medium">
+                          {maxWeight > 0
+                            ? `${maxWeight} kg`
+                            : "Bodyweight"}
+                        </p>
+
+                      </div>
+
+                      <div>
+
+                        <p className="text-muted-foreground">
+                          Rest
+                        </p>
+
+                        <p className="mt-1 font-medium">
+                          {exercise.rest}s
+                        </p>
+
+                      </div>
+
+                    </div>
 
                   </div>
-
-                  <div className="ml-4 shrink-0 text-right">
-
-                    <p className="text-sm font-medium">
-                      {exercise.sets} ×{" "}
-                      {exercise.reps}
-                    </p>
-
-                    <p className="text-xs text-muted-foreground">
-                      {exercise.weight}
-                    </p>
-
-                  </div>
-
-                </div>
-              )
+                );
+              }
             )}
-
-          </div>
-
-          {/* Summary */}
-
-          <div className="mt-4 flex items-center justify-between border-t pt-3">
-
-            <span className="text-xs text-muted-foreground">
-              {workout.exercises.length} exercises
-            </span>
-
-            <span className="text-xs font-medium">
-              {totalSets} total sets
-            </span>
 
           </div>
 
@@ -375,200 +564,711 @@ function WorkoutHistoryCard({
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/* Member Home                                                                */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================= */
+/* Member Home                                                               */
+/* ========================================================================= */
 
 function MemberHome() {
-  const consumed = 1780;
-  const protein = 96;
 
-  /*
-   * Date selected in the calendar.
-   */
-  const [selectedDate, setSelectedDate] =
-    useState("");
+  /* ----------------------------------------------------------------------- */
+  /* Member data                                                             */
+  /* ----------------------------------------------------------------------- */
 
-  /*
-   * Which recent workout is expanded.
-   */
-  const [expandedWorkout, setExpandedWorkout] =
-    useState<number | null>(null);
+  const [member, setMember] =
+    useState<MemberProfile | null>(
+      null
+    );
 
-  const unlocked = achievements.filter(
-    (a) => a.unlocked
+  const [memberUserId, setMemberUserId] =
+    useState<string | null>(null);
+
+  const [memberName, setMemberName] =
+    useState("Member");
+
+  const [progress, setProgress] =
+    useState<ProgressRecord[]>(
+      []
+    );
+
+  const [workouts, setWorkouts] =
+    useState<Workout[]>(
+      []
+    );
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [error, setError] =
+    useState<string | null>(
+      null
+    );
+
+  /* ----------------------------------------------------------------------- */
+  /* Workout history UI                                                      */
+  /* ----------------------------------------------------------------------- */
+
+  const [
+    selectedDate,
+    setSelectedDate,
+  ] = useState("");
+
+  const [
+    expandedWorkout,
+    setExpandedWorkout,
+  ] = useState<string | null>(
+    null
   );
 
-  /*
-   * For the current mock data:
-   *
-   * 29 Sep = current/recent day
-   * 28 Sep = previous day
-   * 27 Sep = two days ago
-   *
-   * We show the latest three available
-   * workout records.
-   *
-   * When MongoDB is connected, this will
-   * simply be the latest 3 workout sessions.
-   */
-  const recentWorkouts =
-    workoutHistory.slice(0, 3);
+  /* ----------------------------------------------------------------------- */
+  /* Weekly split                                                             */
+  /* ----------------------------------------------------------------------- */
 
-  /*
-   * If the user selects a date,
-   * find that workout.
-   */
+  const [
+    weeklySplit,
+    setWeeklySplit,
+  ] = useState<WeeklySplit[]>(
+    DEFAULT_WEEKLY_SPLIT
+  );
+
+  const [
+    editingDay,
+    setEditingDay,
+  ] = useState<string | null>(
+    null
+  );
+
+  const [
+    editFocus,
+    setEditFocus,
+  ] = useState("");
+
+  /* ----------------------------------------------------------------------- */
+  /* Fetch member data                                                       */
+  /* ----------------------------------------------------------------------- */
+
+  useEffect(() => {
+
+    async function loadDashboard() {
+
+      try {
+
+        setLoading(true);
+
+        setError(null);
+
+        const token =
+          localStorage.getItem(
+            TOKEN_KEY
+          );
+
+        if (!token) {
+          throw new Error(
+            "Authentication token not found"
+          );
+        }
+
+        /* ================================================================ */
+        /* Fetch profile                                                    */
+        /* ================================================================ */
+
+        const profileResponse =
+          await fetch(
+            PROFILE_API_URL,
+            {
+              headers: {
+                Authorization:
+                  `Bearer ${token}`,
+              },
+            }
+          );
+
+        const profileData =
+          (await profileResponse.json()) as ProfileResponse;
+
+        if (
+          !profileResponse.ok ||
+          !profileData.success
+        ) {
+          throw new Error(
+            "Failed to fetch member profile"
+          );
+        }
+
+        if (
+          !profileData.user.member
+        ) {
+          throw new Error(
+            "Member profile not found"
+          );
+        }
+
+        setMemberName(
+          profileData.user.name
+        );
+
+        /*
+         * Store the actual User ID.
+         *
+         * This is important because progress
+         * and workout records belong to the
+         * authenticated User.
+         */
+        setMemberUserId(
+          profileData.user.id
+        );
+
+        setMember(
+          profileData.user.member
+        );
+
+        /* ================================================================ */
+        /* Fetch progress                                                   */
+        /* ================================================================ */
+
+        const progressResponse =
+          await fetch(
+            PROGRESS_API_URL,
+            {
+              headers: {
+                Authorization:
+                  `Bearer ${token}`,
+              },
+            }
+          );
+
+        const progressData =
+          (await progressResponse.json()) as ProgressResponse;
+
+        if (
+          progressResponse.ok &&
+          progressData.success
+        ) {
+          setProgress(
+            progressData.progress
+          );
+        }
+
+        /* ================================================================ */
+        /* Fetch workouts                                                   */
+        /* ================================================================ */
+
+        const workoutResponse =
+          await fetch(
+            WORKOUT_API_URL,
+            {
+              headers: {
+                Authorization:
+                  `Bearer ${token}`,
+              },
+            }
+          );
+
+        const workoutData =
+          (await workoutResponse.json()) as WorkoutResponse;
+
+        if (
+          workoutResponse.ok &&
+          workoutData.success
+        ) {
+
+          const sortedWorkouts =
+            [...workoutData.workouts].sort(
+              (a, b) =>
+                new Date(
+                  b.date
+                ).getTime() -
+                new Date(
+                  a.date
+                ).getTime()
+            );
+
+          setWorkouts(
+            sortedWorkouts
+          );
+        }
+
+        /* ================================================================ */
+        /* Load weekly split                                                */
+        /* ================================================================ */
+
+        /*
+         * IMPORTANT:
+         *
+         * Use User ID here.
+         *
+         * The old code loaded using:
+         *
+         * profileData.user.id
+         *
+         * but saved using:
+         *
+         * member.id
+         *
+         * Those are different IDs.
+         *
+         * Now both load and save use
+         * the authenticated User ID.
+         */
+
+        const splitStorageKey =
+          `smartgym.weeklySplit.${profileData.user.id}`;
+
+        const savedSplit =
+          localStorage.getItem(
+            splitStorageKey
+          );
+
+        if (savedSplit) {
+
+          try {
+
+            const parsed =
+              JSON.parse(
+                savedSplit
+              ) as WeeklySplit[];
+
+            if (
+              Array.isArray(
+                parsed
+              )
+            ) {
+              setWeeklySplit(
+                parsed
+              );
+            }
+
+          } catch {
+
+            setWeeklySplit(
+              DEFAULT_WEEKLY_SPLIT
+            );
+          }
+        }
+
+      } catch (error) {
+
+        console.error(
+          "Dashboard error:",
+          error
+        );
+
+        setError(
+          error instanceof Error
+            ? error.message
+            : "Failed to load dashboard"
+        );
+
+      } finally {
+
+        setLoading(false);
+
+      }
+    }
+
+    loadDashboard();
+
+  }, []);
+
+  /* ----------------------------------------------------------------------- */
+  /* Weight calculation                                                      */
+  /* ----------------------------------------------------------------------- */
+
+  const weightData =
+    useMemo(() => {
+
+      /*
+       * Starting weight is the weight
+       * stored when the member was created.
+       *
+       * For old members who do not have
+       * startingWeight yet, we temporarily
+       * fall back to their current profile
+       * weight.
+       */
+
+      const startingWeight =
+        member?.startingWeight ??
+        member?.weight ??
+        0;
+
+      /*
+       * No progress records:
+       *
+       * Current weight comes directly
+       * from the member profile.
+       */
+
+      if (
+        progress.length === 0
+      ) {
+
+        return {
+          currentWeight:
+            member?.weight ?? 0,
+
+          startingWeight,
+
+          change: 0,
+        };
+      }
+
+      /*
+       * Sort progress records from
+       * oldest to newest.
+       */
+
+      const sortedProgress =
+        [...progress].sort(
+          (a, b) =>
+            new Date(
+              a.date
+            ).getTime() -
+            new Date(
+              b.date
+            ).getTime()
+        );
+
+      /*
+       * Latest progress record is
+       * the current weight.
+       */
+
+      const latest =
+        sortedProgress[
+          sortedProgress.length - 1
+        ];
+
+      if (!latest) {
+
+        return {
+          currentWeight:
+            member?.weight ?? 0,
+
+          startingWeight,
+
+          change: 0,
+        };
+      }
+
+      /*
+       * IMPORTANT:
+       *
+       * Weight change is calculated
+       * from startingWeight.
+       *
+       * Example:
+       *
+       * Registered: 60 kg
+       * Progress:   61 kg
+       * Progress:   63 kg
+       *
+       * Change = 63 - 60
+       *        = +3 kg
+       */
+
+      const change =
+        latest.weight -
+        startingWeight;
+
+      return {
+        currentWeight:
+          latest.weight,
+
+        startingWeight,
+
+        change,
+      };
+
+    }, [
+      progress,
+      member,
+    ]);
+
+  /* ----------------------------------------------------------------------- */
+  /* Recent workouts                                                         */
+  /* ----------------------------------------------------------------------- */
+
+  const recentWorkouts =
+    workouts.slice(0, 3);
+
+  /* ----------------------------------------------------------------------- */
+  /* Selected workout                                                        */
+  /* ----------------------------------------------------------------------- */
+
   const selectedWorkout =
     selectedDate
-      ? workoutHistory.find(
+      ? workouts.find(
           (workout) =>
-            workout.dateKey === selectedDate
+            workout.date ===
+            selectedDate
         )
       : null;
 
-  /*
-   * Check whether selected date is already
-   * one of the recent three records.
-   */
   const selectedWorkoutIsRecent =
     selectedWorkout
       ? recentWorkouts.some(
           (workout) =>
-            workout.id === selectedWorkout.id
+            workout._id ===
+            selectedWorkout._id
         )
       : false;
+
+  /* ----------------------------------------------------------------------- */
+  /* Weekly split editing                                                    */
+  /* ----------------------------------------------------------------------- */
+
+  function startEditingDay(
+    day: WeeklySplit
+  ) {
+
+    setEditingDay(
+      day.day
+    );
+
+    setEditFocus(
+      day.focus
+    );
+  }
+
+  function cancelEditing() {
+
+    setEditingDay(
+      null
+    );
+
+    setEditFocus("");
+  }
+
+  function saveDay(
+    dayName: string
+  ) {
+
+    const updatedSplit =
+      weeklySplit.map(
+        (day) =>
+          day.day === dayName
+            ? {
+                ...day,
+                focus:
+                  editFocus.trim() ||
+                  "Rest",
+              }
+            : day
+      );
+
+    setWeeklySplit(
+      updatedSplit
+    );
+
+    /*
+     * Save weekly split using
+     * the authenticated User ID.
+     *
+     * This keeps each member's
+     * weekly split separate.
+     */
+
+    if (memberUserId) {
+
+      const splitStorageKey =
+        `smartgym.weeklySplit.${memberUserId}`;
+
+      localStorage.setItem(
+        splitStorageKey,
+        JSON.stringify(
+          updatedSplit
+        )
+      );
+    }
+
+    setEditingDay(
+      null
+    );
+
+    setEditFocus("");
+  }
+
+  /* ----------------------------------------------------------------------- */
+  /* Loading                                                                  */
+  /* ----------------------------------------------------------------------- */
+
+  if (loading) {
+
+    return (
+      <>
+        <PageHeader
+          title="My Dashboard"
+          description="Loading your dashboard..."
+        />
+
+        <div className="py-12 text-center text-muted-foreground">
+          Loading dashboard...
+        </div>
+      </>
+    );
+  }
+
+  /* ----------------------------------------------------------------------- */
+  /* Error                                                                    */
+  /* ----------------------------------------------------------------------- */
+
+  if (error) {
+
+    return (
+      <>
+        <PageHeader
+          title="My Dashboard"
+          description="Unable to load dashboard"
+        />
+
+        <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-center">
+
+          <p className="text-sm font-medium">
+            {error}
+          </p>
+
+          <p className="mt-2 text-xs text-muted-foreground">
+            Please make sure you are logged in
+            and the backend server is running.
+          </p>
+
+        </div>
+      </>
+    );
+  }
+
+  /* ----------------------------------------------------------------------- */
+  /* Membership                                                               */
+  /* ----------------------------------------------------------------------- */
+
+  const membershipDays =
+    member
+      ? getMembershipDaysRemaining(
+          member.membershipExpiryDate
+        )
+      : 0;
+
+  /* ----------------------------------------------------------------------- */
+  /* Weight change                                                            */
+  /* ----------------------------------------------------------------------- */
+
+  const formattedWeightChange =
+    formatWeightChange(
+      weightData.change
+    );
+
+  const weightChangeText =
+    formattedWeightChange > 0
+      ? `+${formattedWeightChange} kg gained`
+      : formattedWeightChange < 0
+        ? `${Math.abs(
+            formattedWeightChange
+          )} kg lost`
+        : "No change yet";
+
+  /* ----------------------------------------------------------------------- */
+  /* Render                                                                   */
+  /* ----------------------------------------------------------------------- */
 
   return (
     <>
       <PageHeader
-        title="Welcome back, Rahul 👋"
-        description="Monday · Chest + Triceps day"
+        title={`Welcome back, ${memberName} 👋`}
+        description="Your fitness progress and membership overview"
       />
 
-      {/* ------------------------------------------------------------------ */}
-      {/* Stats                                                              */}
-      {/* ------------------------------------------------------------------ */}
+      {/* =================================================================== */}
+      {/* SUMMARY CARDS                                                       */}
+      {/* =================================================================== */}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
 
+        {/* Current weight */}
+
         <StatCard
           label="Current weight"
-          value="58 kg"
+          value={`${weightData.currentWeight} kg`}
           icon={Dumbbell}
           tone="accent"
-          delta="+3 kg since April"
+          delta={
+            weightData.startingWeight > 0
+              ? `Started at ${weightData.startingWeight} kg`
+              : "No previous record"
+          }
         />
 
-        <StatCard
-          label="Calories today"
-          value={`${consumed} kcal`}
-          icon={Flame}
-          tone="warning"
-          delta={`Target ${nutritionTargets.calories}`}
-        />
+        {/* Weight change */}
 
         <StatCard
-          label="Protein today"
-          value={`${protein} g`}
-          icon={Apple}
-          tone="success"
-          delta={`Target ${nutritionTargets.protein} g`}
+          label="Weight change"
+          value={weightChangeText}
+          icon={Dumbbell}
+          tone={
+            weightData.change >= 0
+              ? "success"
+              : "warning"
+          }
+          delta={
+            progress.length > 0
+              ? `${progress.length} progress record${
+                  progress.length === 1
+                    ? ""
+                    : "s"
+                }`
+              : "Add progress records"
+          }
         />
+
+        {/* Membership */}
 
         <StatCard
           label="Membership"
-          value="42 days left"
+          value={
+            member?.membershipPlan ??
+            "—"
+          }
           icon={CalendarCheck}
           tone="info"
+          delta={`${membershipDays} days left`}
+        />
+
+        {/* Fee paid */}
+
+        <StatCard
+          label="Fee paid"
+          value={`₹${member?.amountPaid ?? 0}`}
+          icon={Apple}
+          tone="success"
+          delta={
+            member?.paymentMethod
+              ? member.paymentMethod
+              : "Payment information"
+          }
         />
 
       </div>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-3">
 
-        {/* ---------------------------------------------------------------- */}
-        {/* Today's Workout                                                  */}
-        {/* ---------------------------------------------------------------- */}
-
-        <Card className="lg:col-span-2">
-
-          <CardHeader className="flex-row items-center justify-between space-y-0">
-
-            <CardTitle className="text-base">
-              Today's workout ·{" "}
-              {todaysWorkout.title}
-            </CardTitle>
-
-            <Badge variant="secondary">
-              {todaysWorkout.duration} min
-            </Badge>
-
-          </CardHeader>
-
-          <CardContent className="space-y-3">
-
-            {todaysWorkout.exercises.map(
-              (e) => (
-                <div
-                  key={e.exerciseId}
-                  className="flex items-center justify-between rounded-lg bg-secondary/60 px-4 py-3"
-                >
-
-                  <div>
-
-                    <p className="text-sm font-medium">
-                      {e.name}
-                    </p>
-
-                    <p className="text-xs text-muted-foreground">
-                      {e.sets} sets ×{" "}
-                      {e.reps} reps{" "}
-                      {e.weight > 0
-                        ? `· ${e.weight} kg`
-                        : ""}
-                    </p>
-
-                  </div>
-
-                  <span className="text-xs text-muted-foreground">
-                    {e.rest}s rest
-                  </span>
-
-                </div>
-              )
-            )}
-
-            <Button
-              asChild
-              className="w-full"
-            >
-              <Link to="/member/workout">
-                Start workout
-              </Link>
-            </Button>
-
-          </CardContent>
-
-        </Card>
-
-        {/* ---------------------------------------------------------------- */}
-        {/* Nutrition                                                         */}
-        {/* ---------------------------------------------------------------- */}
+        {/* ================================================================= */}
+        {/* NUTRITION                                                         */}
+        {/* ================================================================= */}
 
         <Card>
 
           <CardHeader>
+
             <CardTitle className="text-base">
               Nutrition today
             </CardTitle>
+
           </CardHeader>
 
           <CardContent className="space-y-4">
 
             <MacroBar
               label="Calories"
-              value={consumed}
+              value={1780}
               target={
                 nutritionTargets.calories
               }
@@ -577,7 +1277,7 @@ function MemberHome() {
 
             <MacroBar
               label="Protein"
-              value={protein}
+              value={96}
               target={
                 nutritionTargets.protein
               }
@@ -619,27 +1319,27 @@ function MemberHome() {
 
         </Card>
 
-        {/* ---------------------------------------------------------------- */}
-        {/* Workout History                                                  */}
-        {/* ---------------------------------------------------------------- */}
+        {/* ================================================================= */}
+        {/* WORKOUT HISTORY                                                   */}
+        {/* ================================================================= */}
 
         <Card className="lg:col-span-2">
-
-          {/* Header */}
 
           <CardHeader className="flex-row items-center justify-between gap-4 space-y-0">
 
             <div>
+
               <CardTitle className="text-base">
                 Workout history
               </CardTitle>
 
               <p className="mt-1 text-xs text-muted-foreground">
-                Recent workouts
+                Your real workout history
               </p>
+
             </div>
 
-            {/* Date Picker */}
+            {/* Date picker */}
 
             <div className="flex items-center gap-2">
 
@@ -647,13 +1347,19 @@ function MemberHome() {
 
               <input
                 type="date"
-                value={selectedDate}
+                value={
+                  selectedDate
+                }
                 onChange={(e) => {
+
                   setSelectedDate(
                     e.target.value
                   );
 
-                  setExpandedWorkout(null);
+                  setExpandedWorkout(
+                    null
+                  );
+
                 }}
                 className="h-9 rounded-md border bg-background px-3 text-sm outline-none transition-colors focus:border-accent focus:ring-1 focus:ring-accent"
               />
@@ -664,38 +1370,63 @@ function MemberHome() {
 
           <CardContent className="space-y-3">
 
-            {/* ------------------------------------------------------------ */}
-            {/* Recent 3 workouts                                             */}
-            {/* ------------------------------------------------------------ */}
+            {/* Recent workouts */}
 
-            {recentWorkouts.map(
-              (workout) => (
-                <WorkoutHistoryCard
-                  key={workout.id}
-                  workout={workout}
-                  expanded={
-                    expandedWorkout ===
-                    workout.id
-                  }
-                  onToggle={() =>
-                    setExpandedWorkout(
+            {recentWorkouts.length >
+            0 ? (
+
+              recentWorkouts.map(
+                (workout) => (
+
+                  <WorkoutHistoryCard
+                    key={
+                      workout._id
+                    }
+                    workout={
+                      workout
+                    }
+                    expanded={
                       expandedWorkout ===
-                        workout.id
-                        ? null
-                        : workout.id
-                    )
-                  }
-                />
+                      workout._id
+                    }
+                    onToggle={() =>
+                      setExpandedWorkout(
+                        expandedWorkout ===
+                          workout._id
+                          ? null
+                          : workout._id
+                      )
+                    }
+                  />
+
+                )
               )
+
+            ) : (
+
+              <div className="rounded-xl border border-dashed px-6 py-8 text-center">
+
+                <Dumbbell className="mx-auto size-8 text-muted-foreground" />
+
+                <p className="mt-3 text-sm font-medium">
+                  No workout history
+                </p>
+
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Your completed workouts
+                  will appear here.
+                </p>
+
+              </div>
+
             )}
 
-            {/* ------------------------------------------------------------ */}
-            {/* Selected older date                                           */}
-            {/* ------------------------------------------------------------ */}
+            {/* Selected older workout */}
 
             {selectedDate &&
               selectedWorkout &&
               !selectedWorkoutIsRecent && (
+
                 <div className="mt-5 border-t pt-5">
 
                   <div className="mb-3">
@@ -705,7 +1436,7 @@ function MemberHome() {
                     </p>
 
                     <p className="mt-1 text-xs text-muted-foreground">
-                      {formatSelectedDate(
+                      {formatDate(
                         selectedDate
                       )}
                     </p>
@@ -713,22 +1444,26 @@ function MemberHome() {
                   </div>
 
                   <WorkoutHistoryCard
-                    workout={selectedWorkout}
+                    workout={
+                      selectedWorkout
+                    }
                     expanded={true}
                     onToggle={() =>
-                      setExpandedWorkout(null)
+                      setExpandedWorkout(
+                        null
+                      )
                     }
                   />
 
                 </div>
+
               )}
 
-            {/* ------------------------------------------------------------ */}
-            {/* Selected date has no workout                                  */}
-            {/* ------------------------------------------------------------ */}
+            {/* Selected date with no workout */}
 
             {selectedDate &&
               !selectedWorkout && (
+
                 <div className="mt-5 rounded-xl border border-dashed px-6 py-8 text-center">
 
                   <Dumbbell className="mx-auto size-8 text-muted-foreground" />
@@ -740,115 +1475,166 @@ function MemberHome() {
                   <p className="mt-1 text-xs text-muted-foreground">
                     There is no workout history
                     for{" "}
-                    {formatSelectedDate(
+                    {formatDate(
                       selectedDate
                     )}
                     .
                   </p>
 
                 </div>
+
               )}
 
           </CardContent>
 
         </Card>
 
-        {/* ---------------------------------------------------------------- */}
-        {/* Weekly Split                                                     */}
-        {/* ---------------------------------------------------------------- */}
+        {/* ================================================================= */}
+        {/* WEEKLY SPLIT                                                      */}
+        {/* ================================================================= */}
 
-        <Card>
+        <Card className="lg:col-span-3">
 
           <CardHeader>
-            <CardTitle className="text-base">
-              Weekly split
-            </CardTitle>
+
+            <div className="flex items-center justify-between">
+
+              <div>
+
+                <CardTitle className="text-base">
+                  Weekly split
+                </CardTitle>
+
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Edit your workout focus for each day.
+                </p>
+
+              </div>
+
+            </div>
+
           </CardHeader>
 
           <CardContent className="space-y-2">
 
-            {weeklySplit.map((d) => (
-              <div
-                key={d.day}
-                className="flex items-center justify-between text-sm"
-              >
+            {weeklySplit.map(
+              (day) => {
 
-                <span className="text-muted-foreground">
-                  {d.day.slice(0, 3)}
-                </span>
+                const isEditing =
+                  editingDay ===
+                  day.day;
 
-                <span className="font-medium">
-                  {d.focus}
-                </span>
+                return (
+                  <div
+                    key={day.day}
+                    className="rounded-lg border bg-secondary/20 px-3 py-3"
+                  >
 
-              </div>
-            ))}
+                    {!isEditing ? (
+
+                      <div className="flex items-center justify-between gap-4">
+
+                        <div className="flex items-center gap-4">
+
+                          <span className="w-20 text-sm font-medium">
+                            {day.day}
+                          </span>
+
+                          <span className="text-sm text-muted-foreground">
+                            {day.focus}
+                          </span>
+
+                        </div>
+
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() =>
+                            startEditingDay(
+                              day
+                            )
+                          }
+                        >
+
+                          <Pencil className="mr-2 size-4" />
+
+                          Edit
+
+                        </Button>
+
+                      </div>
+
+                    ) : (
+
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+
+                        <span className="w-20 text-sm font-medium">
+                          {day.day}
+                        </span>
+
+                        <input
+                          type="text"
+                          value={
+                            editFocus
+                          }
+                          onChange={(e) =>
+                            setEditFocus(
+                              e.target.value
+                            )
+                          }
+                          placeholder="Enter workout focus"
+                          className="h-9 flex-1 rounded-md border bg-background px-3 text-sm outline-none focus:border-accent focus:ring-1 focus:ring-accent"
+                          autoFocus
+                        />
+
+                        <div className="flex gap-2">
+
+                          <Button
+                            type="button"
+                            size="sm"
+                            onClick={() =>
+                              saveDay(
+                                day.day
+                              )
+                            }
+                          >
+
+                            <Save className="mr-2 size-4" />
+
+                            Save
+
+                          </Button>
+
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={
+                              cancelEditing
+                            }
+                          >
+
+                            <X className="mr-2 size-4" />
+
+                            Cancel
+
+                          </Button>
+
+                        </div>
+
+                      </div>
+
+                    )}
+
+                  </div>
+                );
+              }
+            )}
 
           </CardContent>
 
         </Card>
-
-        {/* ---------------------------------------------------------------- */}
-        {/* Achievements                                                     */}
-        {/* ---------------------------------------------------------------- */}
-
-        <div className="space-y-4 lg:col-span-3">
-
-          <Card>
-
-            <CardHeader className="flex-row items-center justify-between space-y-0">
-
-              <CardTitle className="text-base">
-                Achievements
-              </CardTitle>
-
-              <Trophy className="size-4 text-accent" />
-
-            </CardHeader>
-
-            <CardContent className="space-y-3">
-
-              <Progress
-                value={
-                  (unlocked.length /
-                    achievements.length) *
-                  100
-                }
-              />
-
-              <p className="text-xs text-muted-foreground">
-                {unlocked.length} of{" "}
-                {achievements.length} unlocked ·{" "}
-                {unlocked.reduce(
-                  (s, a) => s + a.xp,
-                  0
-                )}{" "}
-                XP
-              </p>
-
-              <div className="flex flex-wrap gap-2">
-
-                {achievements.map((a) => (
-                  <span
-                    key={a.id}
-                    title={a.title}
-                    className={`flex size-10 items-center justify-center rounded-xl bg-secondary text-lg ${
-                      a.unlocked
-                        ? ""
-                        : "opacity-30 grayscale"
-                    }`}
-                  >
-                    {a.icon}
-                  </span>
-                ))}
-
-              </div>
-
-            </CardContent>
-
-          </Card>
-
-        </div>
 
       </div>
     </>

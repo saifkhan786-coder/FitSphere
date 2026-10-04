@@ -7,6 +7,7 @@ const paymentRoutes = require("./routes/paymentRoutes");
 const attendanceRoutes = require("./routes/attendanceRoutes");
 const exerciseRoutes = require("./routes/exerciseRoutes");
 const workoutRoutes = require("./routes/workoutRoutes");
+const progressRoutes = require("./routes/progressRoutes");
 app.use(cors());
 
 const connectDB = require("./config/db.js");
@@ -23,6 +24,7 @@ app.use("/api/payments", paymentRoutes);
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/exercises", exerciseRoutes);
 app.use("/api/workouts", workoutRoutes);
+app.use("/api/progress", progressRoutes);
 
 app.listen(process.env.PORT, () => {
     console.log(`server running on port ${process.env.PORT}`);

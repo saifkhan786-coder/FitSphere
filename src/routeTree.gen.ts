@@ -23,7 +23,6 @@ import { Route as AdminPaymentsRouteImport } from './routes/admin.payments'
 import { Route as AdminRegisterRouteImport } from './routes/admin.register'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as MemberIndexRouteImport } from './routes/member.index'
-import { Route as MemberAchievementsRouteImport } from './routes/member.achievements'
 import { Route as MemberAttendanceRouteImport } from './routes/member.attendance'
 import { Route as MemberCalculatorRouteImport } from './routes/member.calculator'
 import { Route as MemberCoachRouteImport } from './routes/member.coach'
@@ -104,11 +103,6 @@ const MemberIndexRoute = MemberIndexRouteImport.update({
   path: '/',
   getParentRoute: () => MemberRoute,
 } as any)
-const MemberAchievementsRoute = MemberAchievementsRouteImport.update({
-  id: '/achievements',
-  path: '/achievements',
-  getParentRoute: () => MemberRoute,
-} as any)
 const MemberAttendanceRoute = MemberAttendanceRouteImport.update({
   id: '/attendance',
   path: '/attendance',
@@ -168,7 +162,6 @@ export interface FileRoutesByFullPath {
   '/admin/payments': typeof AdminPaymentsRoute
   '/admin/register': typeof AdminRegisterRoute
   '/admin/settings': typeof AdminSettingsRoute
-  '/member/achievements': typeof MemberAchievementsRoute
   '/member/attendance': typeof MemberAttendanceRoute
   '/member/calculator': typeof MemberCalculatorRoute
   '/member/coach': typeof MemberCoachRoute
@@ -192,7 +185,6 @@ export interface FileRoutesByTo {
   '/admin/payments': typeof AdminPaymentsRoute
   '/admin/register': typeof AdminRegisterRoute
   '/admin/settings': typeof AdminSettingsRoute
-  '/member/achievements': typeof MemberAchievementsRoute
   '/member/attendance': typeof MemberAttendanceRoute
   '/member/calculator': typeof MemberCalculatorRoute
   '/member/coach': typeof MemberCoachRoute
@@ -219,7 +211,6 @@ export interface FileRoutesById {
   '/admin/payments': typeof AdminPaymentsRoute
   '/admin/register': typeof AdminRegisterRoute
   '/admin/settings': typeof AdminSettingsRoute
-  '/member/achievements': typeof MemberAchievementsRoute
   '/member/attendance': typeof MemberAttendanceRoute
   '/member/calculator': typeof MemberCalculatorRoute
   '/member/coach': typeof MemberCoachRoute
@@ -247,7 +238,6 @@ export interface FileRouteTypes {
     | '/admin/payments'
     | '/admin/register'
     | '/admin/settings'
-    | '/member/achievements'
     | '/member/attendance'
     | '/member/calculator'
     | '/member/coach'
@@ -271,7 +261,6 @@ export interface FileRouteTypes {
     | '/admin/payments'
     | '/admin/register'
     | '/admin/settings'
-    | '/member/achievements'
     | '/member/attendance'
     | '/member/calculator'
     | '/member/coach'
@@ -297,7 +286,6 @@ export interface FileRouteTypes {
     | '/admin/payments'
     | '/admin/register'
     | '/admin/settings'
-    | '/member/achievements'
     | '/member/attendance'
     | '/member/calculator'
     | '/member/coach'
@@ -417,13 +405,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MemberIndexRouteImport
       parentRoute: typeof MemberRoute
     }
-    '/member/achievements': {
-      id: '/member/achievements'
-      path: '/achievements'
-      fullPath: '/member/achievements'
-      preLoaderRoute: typeof MemberAchievementsRouteImport
-      parentRoute: typeof MemberRoute
-    }
     '/member/attendance': {
       id: '/member/attendance'
       path: '/attendance'
@@ -519,7 +500,6 @@ const AdminRouteChildren: AdminRouteChildren = {
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface MemberRouteChildren {
-  MemberAchievementsRoute: typeof MemberAchievementsRoute
   MemberAttendanceRoute: typeof MemberAttendanceRoute
   MemberCalculatorRoute: typeof MemberCalculatorRoute
   MemberCoachRoute: typeof MemberCoachRoute
@@ -533,7 +513,6 @@ interface MemberRouteChildren {
 }
 
 const MemberRouteChildren: MemberRouteChildren = {
-  MemberAchievementsRoute: MemberAchievementsRoute,
   MemberAttendanceRoute: MemberAttendanceRoute,
   MemberCalculatorRoute: MemberCalculatorRoute,
   MemberCoachRoute: MemberCoachRoute,
