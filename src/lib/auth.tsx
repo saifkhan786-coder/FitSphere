@@ -115,7 +115,7 @@ export function AuthProvider({
        */
 
       const response = await fetch(
-        "http://192.168.37.238:5000/api/auth/login",
+        "/api/auth/login",
         {
           method: "POST",
 

@@ -111,10 +111,10 @@ type StoredWorkout = {
 /* -------------------------------------------------------------------------- */
 
 const API_URL =
-  "http://192.168.37.238:5000/api/exercises";
+  "/api/exercises";
 
 const WORKOUT_API_URL =
-  "http://192.168.37.238:5000/api/workouts";
+  "/api/workouts";
 
 const TOKEN_KEY =
   "smartgym.token";

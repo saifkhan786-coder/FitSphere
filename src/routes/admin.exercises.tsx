@@ -106,7 +106,7 @@ function AdminExercises() {
       setLoading(true);
 
       const response = await fetch(
-        "http://localhost:5000/api/exercises"
+        "/api/exercises"
       );
 
       const data = await response.json();
@@ -147,7 +147,7 @@ function AdminExercises() {
       }
 
       const response = await fetch(
-        "http://localhost:5000/api/exercises",
+        "/api/exercises",
         {
           method: "POST",
 
@@ -221,7 +221,7 @@ function AdminExercises() {
       }
 
       const response = await fetch(
-        `http://localhost:5000/api/exercises/${exerciseId}`,
+        `/api/exercises/${exerciseId}`,
         {
           method: "DELETE",
 

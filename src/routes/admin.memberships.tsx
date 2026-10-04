@@ -142,7 +142,7 @@ function MembershipsPage() {
       );
 
     fetch(
-      "http://localhost:5000/api/auth/admin/members",
+      "/api/auth/admin/members",
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -242,7 +242,7 @@ function MembershipsPage() {
 
   useEffect(() => {
     fetch(
-      "http://localhost:5000/api/plans"
+      "/api/plans"
     )
       .then((res) => res.json())
       .then((data) => {
@@ -286,7 +286,7 @@ function MembershipsPage() {
 
         const response =
           await fetch(
-            `http://localhost:5000/api/auth/admin/members/${member.id}/reminder`,
+            `/api/auth/admin/members/${member.id}/reminder`,
             {
               method: "POST",
 
@@ -446,7 +446,7 @@ function MembershipsPage() {
 
         const response =
           await fetch(
-            `http://localhost:5000/api/plans/${editingPlan._id}`,
+            `/api/plans/${editingPlan._id}`,
             {
               method: "PUT",
 
@@ -589,7 +589,7 @@ function MembershipsPage() {
 
         const response =
           await fetch(
-            `http://localhost:5000/api/auth/admin/members/${renewingMember.id}/membership`,
+            `/api/auth/admin/members/${renewingMember.id}/membership`,
             {
               method: "PUT",
 
