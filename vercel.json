@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://fit-sphere-eight.vercel.app/api/:path*"
+    }
+  ]
+}
