@@ -80,8 +80,11 @@ export const Route = createFileRoute(
 });
 
 function MembershipsPage() {
-  const [members, setMembers] = useState<any[]>([]);
-  const [plans, setPlans] = useState<any[]>([]);
+  const [members, setMembers] =
+    useState<any[]>([]);
+
+  const [plans, setPlans] =
+    useState<any[]>([]);
 
   // -----------------------------------
   // Edit Plan states
@@ -120,6 +123,13 @@ function MembershipsPage() {
 
   const [savingRenewal, setSavingRenewal] =
     useState(false);
+
+  // -----------------------------------
+  // Reminder state
+  // -----------------------------------
+
+  const [sendingReminder, setSendingReminder] =
+    useState<string | null>(null);
 
   // -----------------------------------
   // Fetch members
@@ -257,6 +267,74 @@ function MembershipsPage() {
         );
       });
   }, []);
+
+  // -----------------------------------
+  // Send membership reminder
+  // -----------------------------------
+
+  const handleSendReminder =
+    async (member: any) => {
+      try {
+        setSendingReminder(
+          member.id
+        );
+
+        const token =
+          localStorage.getItem(
+            "smartgym.token"
+          );
+
+        const response =
+          await fetch(
+            `http://localhost:5000/api/auth/admin/members/${member.id}/reminder`,
+            {
+              method: "POST",
+
+              headers: {
+                Authorization:
+                  `Bearer ${token}`,
+              },
+            }
+          );
+
+        const data =
+          await response.json();
+
+        console.log(
+          "Reminder result:",
+          data
+        );
+
+        if (
+          !response.ok ||
+          !data.success
+        ) {
+          toast.error(
+            data.message ||
+              "Failed to send reminder"
+          );
+
+          return;
+        }
+
+        toast.success(
+          data.message ||
+            `Reminder sent to ${member.name}`
+        );
+
+      } catch (error) {
+        console.error(
+          "Send reminder error:",
+          error
+        );
+
+        toast.error(
+          "Something went wrong while sending the reminder"
+        );
+      } finally {
+        setSendingReminder(null);
+      }
+    };
 
   // -----------------------------------
   // Open Edit Plan dialog
@@ -443,11 +521,13 @@ function MembershipsPage() {
 
     // Use today's date as default
     const today =
-  new Date()
-    .toISOString()
-    .substring(0, 10);
+      new Date()
+        .toISOString()
+        .substring(0, 10);
 
-setRenewStartDate(today);
+    setRenewStartDate(
+      today
+    );
 
     // Use current member plan as default
     const validPlan =
@@ -910,20 +990,27 @@ setRenewStartDate(today);
 
                       </TableCell>
 
-                      {/* Existing Action */}
+                      {/* Send Reminder */}
 
                       <TableCell className="text-right">
 
                         <Button
                           size="sm"
                           variant="outline"
+                          disabled={
+                            sendingReminder ===
+                            member.id
+                          }
                           onClick={() =>
-                            toast.success(
-                              `Reminder sent to ${member.name}`
+                            handleSendReminder(
+                              member
                             )
                           }
                         >
-                          Send reminder
+                          {sendingReminder ===
+                          member.id
+                            ? "Sending..."
+                            : "Send reminder"}
                         </Button>
 
                       </TableCell>

@@ -2,6 +2,9 @@ const User = require("../models/User.js");
 const Member = require("../models/Member.js");
 const Progress = require("../models/Progress.js");
 
+const sendMembershipReminder =
+    require("../services/emailService.js");
+
 const roleMiddleware = require("../middleware/roleMiddleware.js");
 const authMiddleware = require("../middleware/authMiddleware.js");
 
@@ -58,29 +61,8 @@ const issueToken = (user) =>
 // ======================================================
 // MEMBER WEIGHT PROGRESS SUMMARY
 // ======================================================
-//
-// startingWeight = weight when member was created.
-//
-// currentWeight = latest weight from Progress.
-//
-// weightChange = currentWeight - startingWeight.
-//
-// Example:
-//
-// Starting = 58
-// Current  = 60
-// Change   = +2
-//
-// Starting = 58
-// Current  = 56
-// Change   = -2
-// ======================================================
 
 async function getMemberWeightSummary(member) {
-
-    // Use dedicated startingWeight field.
-    // For old members that don't have startingWeight,
-    // fall back to their existing weight.
 
     const startingWeight =
         Number(
@@ -88,11 +70,6 @@ async function getMemberWeightSummary(member) {
             member.weight ??
             0
         );
-
-
-    // --------------------------------------------------
-    // No starting weight
-    // --------------------------------------------------
 
     if (startingWeight <= 0) {
 
@@ -104,11 +81,6 @@ async function getMemberWeightSummary(member) {
         };
     }
 
-
-    // --------------------------------------------------
-    // Find progress records
-    // --------------------------------------------------
-
     const progressRecords =
         await Progress.find({
             userId: member.userId.toString()
@@ -117,11 +89,6 @@ async function getMemberWeightSummary(member) {
                 date: 1
             })
             .lean();
-
-
-    // --------------------------------------------------
-    // No progress record yet
-    // --------------------------------------------------
 
     if (progressRecords.length === 0) {
 
@@ -133,16 +100,10 @@ async function getMemberWeightSummary(member) {
         };
     }
 
-
-    // --------------------------------------------------
-    // Get latest progress record
-    // --------------------------------------------------
-
     const latestProgress =
         progressRecords[
             progressRecords.length - 1
         ];
-
 
     const currentWeight =
         Number(
@@ -150,18 +111,11 @@ async function getMemberWeightSummary(member) {
             startingWeight
         );
 
-
     const weightChange =
         currentWeight -
         startingWeight;
 
-
-    // --------------------------------------------------
-    // Weight status
-    // --------------------------------------------------
-
     let weightStatus = "No change";
-
 
     if (weightChange > 0) {
 
@@ -171,7 +125,6 @@ async function getMemberWeightSummary(member) {
 
         weightStatus = "Lost";
     }
-
 
     return {
         startingWeight,
@@ -198,20 +151,10 @@ router.post(
                 password
             } = req.body;
 
-
-            // ------------------------------------------------
-            // Normalize email
-            // ------------------------------------------------
-
             const normalizedEmail =
                 String(email || "")
                     .trim()
                     .toLowerCase();
-
-
-            // ------------------------------------------------
-            // Required fields
-            // ------------------------------------------------
 
             if (
                 !name ||
@@ -226,16 +169,10 @@ router.post(
                 });
             }
 
-
-            // ------------------------------------------------
-            // Check existing user
-            // ------------------------------------------------
-
             const existingUser =
                 await User.findOne({
                     email: normalizedEmail
                 });
-
 
             if (existingUser) {
 
@@ -246,21 +183,11 @@ router.post(
                 });
             }
 
-
-            // ------------------------------------------------
-            // Hash password
-            // ------------------------------------------------
-
             const hashedPassword =
                 await bcrypt.hash(
                     password,
                     10
                 );
-
-
-            // ------------------------------------------------
-            // Create user
-            // ------------------------------------------------
 
             const newUser =
                 new User({
@@ -269,13 +196,7 @@ router.post(
                     password: hashedPassword
                 });
 
-
             await newUser.save();
-
-
-            // ------------------------------------------------
-            // Response
-            // ------------------------------------------------
 
             res.status(201).json({
 
@@ -319,20 +240,10 @@ router.post(
                 password
             } = req.body;
 
-
-            // ------------------------------------------------
-            // Normalize email
-            // ------------------------------------------------
-
             const normalizedEmail =
                 String(email || "")
                     .trim()
                     .toLowerCase();
-
-
-            // ------------------------------------------------
-            // Demo users
-            // ------------------------------------------------
 
             const demoUser =
                 Object.values(
@@ -343,7 +254,6 @@ router.post(
                         normalizedEmail
                 );
 
-
             if (
                 demoUser &&
                 demoUser.password === password
@@ -353,7 +263,6 @@ router.post(
                     issueToken(
                         demoUser
                     );
-
 
                 return res.json({
 
@@ -381,16 +290,10 @@ router.post(
                 });
             }
 
-
-            // ------------------------------------------------
-            // Real MongoDB user
-            // ------------------------------------------------
-
             const user =
                 await User.findOne({
                     email: normalizedEmail
                 });
-
 
             if (!user) {
 
@@ -403,17 +306,11 @@ router.post(
                 });
             }
 
-
-            // ------------------------------------------------
-            // Check password
-            // ------------------------------------------------
-
             const isPasswordCorrect =
                 await bcrypt.compare(
                     password,
                     user.password
                 );
-
 
             if (!isPasswordCorrect) {
 
@@ -426,11 +323,6 @@ router.post(
                 });
             }
 
-
-            // ------------------------------------------------
-            // Find member profile
-            // ------------------------------------------------
-
             const memberProfile =
                 user.role === "member"
                     ? await Member.findOne({
@@ -438,11 +330,6 @@ router.post(
                             user._id
                     }).lean()
                     : null;
-
-
-            // ------------------------------------------------
-            // Create JWT
-            // ------------------------------------------------
 
             const token =
                 issueToken({
@@ -453,11 +340,6 @@ router.post(
                     role:
                         user.role
                 });
-
-
-            // ------------------------------------------------
-            // Login response
-            // ------------------------------------------------
 
             res.json({
 
@@ -582,20 +464,10 @@ router.post(
                 amountPaid
             } = req.body;
 
-
-            // ------------------------------------------------
-            // Normalize email
-            // ------------------------------------------------
-
             const normalizedEmail =
                 String(email || "")
                     .trim()
                     .toLowerCase();
-
-
-            // ------------------------------------------------
-            // Required fields
-            // ------------------------------------------------
 
             if (
                 !name ||
@@ -614,11 +486,6 @@ router.post(
                 });
             }
 
-
-            // ------------------------------------------------
-            // Validate membership plan
-            // ------------------------------------------------
-
             const planDurations = {
 
                 Basic: 1,
@@ -630,12 +497,10 @@ router.post(
                 Annual: 12
             };
 
-
             const months =
                 planDurations[
                     membershipPlan
                 ];
-
 
             if (!months) {
 
@@ -648,16 +513,10 @@ router.post(
                 });
             }
 
-
-            // ------------------------------------------------
-            // Validate start date
-            // ------------------------------------------------
-
             const startDate =
                 new Date(
                     membershipStartDate
                 );
-
 
             if (
                 isNaN(
@@ -674,18 +533,12 @@ router.post(
                 });
             }
 
-
-            // ------------------------------------------------
-            // Check existing user
-            // ------------------------------------------------
-
             const existingUser =
                 await User.findOne({
 
                     email:
                         normalizedEmail
                 });
-
 
             if (existingUser) {
 
@@ -698,21 +551,11 @@ router.post(
                 });
             }
 
-
-            // ------------------------------------------------
-            // Hash password
-            // ------------------------------------------------
-
             const hashedPassword =
                 await bcrypt.hash(
                     password,
                     10
                 );
-
-
-            // ------------------------------------------------
-            // Create User
-            // ------------------------------------------------
 
             const newUser =
                 new User({
@@ -729,29 +572,17 @@ router.post(
                         "member"
                 });
 
-
             await newUser.save();
-
-
-            // ------------------------------------------------
-            // Calculate membership expiry
-            // ------------------------------------------------
 
             const expiryDate =
                 new Date(
                     startDate
                 );
 
-
             expiryDate.setMonth(
                 expiryDate.getMonth() +
                 months
             );
-
-
-            // ------------------------------------------------
-            // Create Member profile
-            // ------------------------------------------------
 
             const newMember =
                 new Member({
@@ -782,12 +613,10 @@ router.post(
                         height ||
                         undefined,
 
-                    // Current weight
                     weight:
                         weight ||
                         undefined,
 
-                    // Permanent starting weight
                     startingWeight:
                         weight ||
                         undefined,
@@ -825,13 +654,7 @@ router.post(
                         0
                 });
 
-
             await newMember.save();
-
-
-            // ------------------------------------------------
-            // Response
-            // ------------------------------------------------
 
             res.status(201).json({
 
@@ -892,28 +715,15 @@ router.get(
 
         try {
 
-            // ------------------------------------------------
-            // Get all member profiles
-            // ------------------------------------------------
-
             const members =
                 await Member.find()
                     .lean();
-
-
-            // ------------------------------------------------
-            // Add user email + weight progress
-            // ------------------------------------------------
 
             const membersWithProgress =
                 await Promise.all(
 
                     members.map(
                         async (member) => {
-
-                            // --------------------------------
-                            // Find User connected to Member
-                            // --------------------------------
 
                             const user =
                                 await User.findById(
@@ -924,20 +734,10 @@ router.get(
                                     )
                                     .lean();
 
-
-                            // --------------------------------
-                            // Calculate weight progress
-                            // --------------------------------
-
                             const weightSummary =
                                 await getMemberWeightSummary(
                                     member
                                 );
-
-
-                            // --------------------------------
-                            // Payment status
-                            // --------------------------------
 
                             const paymentStatus =
                                 Number(
@@ -947,24 +747,16 @@ router.get(
                                     ? "Paid"
                                     : "Pending";
 
-
-                            // --------------------------------
-                            // Membership status
-                            // --------------------------------
-
                             const now =
                                 new Date();
-
 
                             const expiryDate =
                                 new Date(
                                     member.membershipExpiryDate
                                 );
 
-
                             let membershipStatus =
                                 "Active";
-
 
                             if (
                                 isNaN(
@@ -999,11 +791,6 @@ router.get(
                                     "Expiring Soon";
                             }
 
-
-                            // --------------------------------
-                            // Return complete member
-                            // --------------------------------
-
                             return {
 
                                 ...member,
@@ -1031,11 +818,6 @@ router.get(
                         }
                     )
                 );
-
-
-            // ------------------------------------------------
-            // Response
-            // ------------------------------------------------
 
             res.json({
 
@@ -1078,16 +860,10 @@ router.get(
             const userId =
                 req.user.userId;
 
-
-            // ------------------------------------------------
-            // Find user
-            // ------------------------------------------------
-
             const user =
                 await User.findById(
                     userId
                 );
-
 
             if (!user) {
 
@@ -1100,11 +876,6 @@ router.get(
                 });
             }
 
-
-            // ------------------------------------------------
-            // Find member profile
-            // ------------------------------------------------
-
             const memberProfile =
                 await Member.findOne({
 
@@ -1112,11 +883,6 @@ router.get(
                         user._id
 
                 }).lean();
-
-
-            // ------------------------------------------------
-            // Response
-            // ------------------------------------------------
 
             res.json({
 
@@ -1224,7 +990,6 @@ router.put(
             const userId =
                 req.user.userId;
 
-
             const {
                 phone,
                 dateOfBirth,
@@ -1236,16 +1001,10 @@ router.put(
                 trainingDaysPerWeek
             } = req.body;
 
-
-            // ------------------------------------------------
-            // Find member
-            // ------------------------------------------------
-
             const member =
                 await Member.findOne({
                     userId
                 });
-
 
             if (!member) {
 
@@ -1257,11 +1016,6 @@ router.put(
                         "Member profile not found"
                 });
             }
-
-
-            // ------------------------------------------------
-            // Update profile
-            // ------------------------------------------------
 
             member.phone =
                 phone;
@@ -1290,9 +1044,7 @@ router.put(
             member.trainingDaysPerWeek =
                 trainingDaysPerWeek;
 
-
             await member.save();
-
 
             res.json({
 
@@ -1335,16 +1087,10 @@ router.put(
             const userId =
                 req.user.userId;
 
-
             const {
                 currentPassword,
                 newPassword
             } = req.body;
-
-
-            // ------------------------------------------------
-            // Validate input
-            // ------------------------------------------------
 
             if (
                 !currentPassword ||
@@ -1360,16 +1106,10 @@ router.put(
                 });
             }
 
-
-            // ------------------------------------------------
-            // Find user
-            // ------------------------------------------------
-
             const user =
                 await User.findById(
                     userId
                 );
-
 
             if (!user) {
 
@@ -1382,17 +1122,11 @@ router.put(
                 });
             }
 
-
-            // ------------------------------------------------
-            // Check current password
-            // ------------------------------------------------
-
             const isPasswordCorrect =
                 await bcrypt.compare(
                     currentPassword,
                     user.password
                 );
-
 
             if (!isPasswordCorrect) {
 
@@ -1405,24 +1139,16 @@ router.put(
                 });
             }
 
-
-            // ------------------------------------------------
-            // Hash new password
-            // ------------------------------------------------
-
             const hashedPassword =
                 await bcrypt.hash(
                     newPassword,
                     10
                 );
 
-
             user.password =
                 hashedPassword;
 
-
             await user.save();
-
 
             res.json({
 
@@ -1488,16 +1214,10 @@ router.put(
                 memberId
             } = req.params;
 
-
             const {
                 membershipPlan,
                 membershipStartDate
             } = req.body;
-
-
-            // ------------------------------------------------
-            // Validate input
-            // ------------------------------------------------
 
             if (
                 !membershipPlan ||
@@ -1513,16 +1233,10 @@ router.put(
                 });
             }
 
-
-            // ------------------------------------------------
-            // Find member
-            // ------------------------------------------------
-
             const member =
                 await Member.findById(
                     memberId
                 );
-
 
             if (!member) {
 
@@ -1535,11 +1249,6 @@ router.put(
                 });
             }
 
-
-            // ------------------------------------------------
-            // Plan durations
-            // ------------------------------------------------
-
             const planDurations = {
 
                 Basic: 1,
@@ -1551,12 +1260,10 @@ router.put(
                 Annual: 12
             };
 
-
             const months =
                 planDurations[
                     membershipPlan
                 ];
-
 
             if (!months) {
 
@@ -1569,16 +1276,10 @@ router.put(
                 });
             }
 
-
-            // ------------------------------------------------
-            // Validate start date
-            // ------------------------------------------------
-
             const startDate =
                 new Date(
                     membershipStartDate
                 );
-
 
             if (
                 isNaN(
@@ -1595,26 +1296,15 @@ router.put(
                 });
             }
 
-
-            // ------------------------------------------------
-            // Calculate expiry date
-            // ------------------------------------------------
-
             const expiryDate =
                 new Date(
                     startDate
                 );
 
-
             expiryDate.setMonth(
                 expiryDate.getMonth() +
                 months
             );
-
-
-            // ------------------------------------------------
-            // Update membership
-            // ------------------------------------------------
 
             member.membershipPlan =
                 membershipPlan;
@@ -1625,13 +1315,7 @@ router.put(
             member.membershipExpiryDate =
                 expiryDate;
 
-
             await member.save();
-
-
-            // ------------------------------------------------
-            // Response
-            // ------------------------------------------------
 
             res.json({
 
@@ -1656,6 +1340,226 @@ router.put(
 
                 message:
                     "Server error"
+            });
+        }
+    }
+);
+
+
+// ======================================================
+// ADMIN SEND MEMBERSHIP REMINDER
+// ======================================================
+
+router.post(
+    "/admin/members/:memberId/reminder",
+    authMiddleware,
+    roleMiddleware(["admin"]),
+    async (req, res) => {
+
+        try {
+
+            const {
+                memberId
+            } = req.params;
+
+
+            // ------------------------------------------------
+            // Find member
+            // ------------------------------------------------
+
+            const member =
+                await Member.findById(
+                    memberId
+                ).lean();
+
+
+            if (!member) {
+
+                return res.status(404).json({
+
+                    success: false,
+
+                    message:
+                        "Member not found"
+                });
+            }
+
+
+            // ------------------------------------------------
+            // Find member email
+            // ------------------------------------------------
+
+            const user =
+                await User.findById(
+                    member.userId
+                )
+                    .select(
+                        "email name"
+                    )
+                    .lean();
+
+
+            if (!user) {
+
+                return res.status(404).json({
+
+                    success: false,
+
+                    message:
+                        "Member user account not found"
+                });
+            }
+
+
+            if (!user.email) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "Member does not have an email address"
+                });
+            }
+
+
+            // ------------------------------------------------
+            // Check expiry date
+            // ------------------------------------------------
+
+            const expiryDate =
+                new Date(
+                    member.membershipExpiryDate
+                );
+
+
+            if (
+                isNaN(
+                    expiryDate.getTime()
+                )
+            ) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "Member has an invalid membership expiry date"
+                });
+            }
+
+
+            // ------------------------------------------------
+            // Determine membership status
+            // ------------------------------------------------
+
+            const now =
+                new Date();
+
+            const sevenDaysFromNow =
+                new Date(
+                    Date.now() +
+                    7 *
+                    24 *
+                    60 *
+                    60 *
+                    1000
+                );
+
+
+            const isExpired =
+                expiryDate < now;
+
+
+            const isExpiringSoon =
+                !isExpired &&
+                expiryDate <=
+                sevenDaysFromNow;
+
+
+            // ------------------------------------------------
+            // Only allow reminder for
+            // expired or expiring-soon members
+            // ------------------------------------------------
+
+            if (
+                !isExpired &&
+                !isExpiringSoon
+            ) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        "Membership is not expiring within 7 days"
+                });
+            }
+
+
+            // ------------------------------------------------
+            // Format expiry date
+            // ------------------------------------------------
+
+            const formattedExpiryDate =
+                expiryDate.toLocaleDateString(
+                    "en-IN",
+                    {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric"
+                    }
+                );
+
+
+            // ------------------------------------------------
+            // Send email
+            // ------------------------------------------------
+
+            await sendMembershipReminder({
+
+                memberName:
+                    member.name ||
+                    user.name,
+
+                memberEmail:
+                    user.email,
+
+                expiryDate:
+                    formattedExpiryDate,
+
+                isExpired
+            });
+
+
+            // ------------------------------------------------
+            // Response
+            // ------------------------------------------------
+
+            res.json({
+
+                success: true,
+
+                message:
+                    isExpired
+                        ? "Membership expiry reminder sent successfully"
+                        : "Membership renewal reminder sent successfully"
+            });
+
+        } catch (error) {
+
+            console.error(
+                "Membership reminder error:",
+                error
+            );
+
+            res.status(500).json({
+
+                success: false,
+
+                message:
+                    error.message ||
+                    "Failed to send membership reminder"
             });
         }
     }
