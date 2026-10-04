@@ -29,7 +29,7 @@ function SidebarContent({ items, onNavigate }: { items: NavItem[]; onNavigate?: 
           <Dumbbell className="size-5" />
         </div>
         <div>
-          <p className="font-display text-base font-semibold leading-none">Smart Gym</p>
+          <p className="font-display text-base font-semibold leading-none">FitSphere</p>
           <p className="mt-1 text-xs text-sidebar-foreground/60">Fitness · Nutrition · Progress</p>
         </div>
       </div>

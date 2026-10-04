@@ -13,13 +13,13 @@ import type { Role } from "@/lib/types";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Smart Gym — Gym Management & Fitness Tracking" },
+      { title: "FitSphere — Gym Management & Fitness Tracking" },
       {
         name: "description",
         content:
-          "Smart Gym is an all-in-one gym management and fitness tracking platform for admins and members: memberships, payments, attendance, workouts, nutrition and progress.",
+          "FitSphere is an all-in-one gym management and fitness tracking platform for admins and members: memberships, payments, attendance, workouts, nutrition and progress.",
       },
-      { property: "og:title", content: "Smart Gym — Gym Management & Fitness Tracking" },
+      { property: "og:title", content: "FitSphere — Gym Management & Fitness Tracking" },
       {
         property: "og:description",
         content:
@@ -124,7 +124,7 @@ function LandingPage() {
                 <div className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
                   <Dumbbell className="size-5" />
                 </div>
-                <p className="font-display text-lg font-semibold">Smart Gym</p>
+                <p className="font-display text-lg font-semibold">FitSphere</p>
               </div>
 
               <h2 className="font-display text-2xl font-semibold tracking-tight">Sign in</h2>
