@@ -117,7 +117,7 @@ function AttendancePage() {
         localStorage.getItem("smartgym.token");
 
       const response = await fetch(
-        "http://localhost:5000/api/attendance/today",
+        "/api/attendance/today",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -155,7 +155,7 @@ function AttendancePage() {
       setLoadingWeeklyAttendance(true);
 
       const response = await fetch(
-        "http://localhost:5000/api/attendance/weekly",
+        "/api/attendance/weekly",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -195,7 +195,7 @@ function AttendancePage() {
         localStorage.getItem("smartgym.token");
 
       const response = await fetch(
-        "http://localhost:5000/api/auth/admin/members",
+        "/api/auth/admin/members",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -288,8 +288,8 @@ function AttendancePage() {
             <div className="flex aspect-square items-center justify-center rounded-xl bg-secondary">
               <div className="rounded-xl bg-white p-4">
                <QRCodeCanvas
-    value="http://192.168.37.238:8080/member/attendance?qr=1"
-    size={200}
+  value={`${window.location.origin}/member/attendance?qr=1`}
+  size={200}
 />
               </div>
             </div>
@@ -346,7 +346,7 @@ function AttendancePage() {
 
                     const response =
                       await fetch(
-                        "http://localhost:5000/api/attendance/checkin",
+                        "/api/attendance/checkin",
                         {
                           method: "POST",
 
