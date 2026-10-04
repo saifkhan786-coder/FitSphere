@@ -115,7 +115,7 @@ const TOKEN_KEY =
   "smartgym.token";
 
 const API_URL =
-  "http://192.168.37.238:5000/api/workouts";
+  "/api/workouts";
 
 /* -------------------------------------------------------------------------- */
 /* Get current logged-in user ID                                              */
