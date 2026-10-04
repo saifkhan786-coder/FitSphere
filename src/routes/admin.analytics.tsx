@@ -45,7 +45,7 @@ export const Route = createFileRoute(
   head: () => ({
     meta: [
       {
-        title: "Analytics — Smart Gym Admin",
+        title: "Analytics — FitSphere Admin",
       },
       {
         name: "description",
@@ -54,7 +54,7 @@ export const Route = createFileRoute(
       },
       {
         property: "og:title",
-        content: "Analytics — Smart Gym Admin",
+        content: "Analytics —  FitSphere Admin",
       },
       {
         property: "og:description",
